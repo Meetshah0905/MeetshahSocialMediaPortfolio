@@ -1,0 +1,284 @@
+[
+  {
+    "id": "fitness-q2-2026",
+    "schemaVersion": 1,
+    "persona": "fitness",
+    "period": {
+      "type": "30d",
+      "startDate": "2026-06-01",
+      "endDate": "2026-06-30",
+      "label": "June 2026",
+      "days": 30
+    },
+    "source": {
+      "type": "instagram-insights-screenshots",
+      "screenshotCount": 4,
+      "uploadedAt": "2026-07-01T12:00:00Z"
+    },
+    "metrics": {
+      "followers": 11900,
+      "followerChange": 450,
+      "reach": 24500,
+      "impressions": 48000,
+      "profileVisits": 1200,
+      "accountsEngaged": 1800,
+      "contentInteractions": 3100,
+      "reelPlays": 18500,
+      "likes": 1200,
+      "comments": 210,
+      "shares": 680,
+      "saves": 1010,
+      "engagementRate": 3.2
+    },
+    "demographics": {
+      "gender": {
+        "male": 72,
+        "female": 25,
+        "otherOrUnspecified": 3
+      },
+      "ageRanges": [
+        {
+          "label": "18-24",
+          "percentage": 38
+        },
+        {
+          "label": "25-34",
+          "percentage": 46
+        },
+        {
+          "label": "35-44",
+          "percentage": 11
+        },
+        {
+          "label": "45+",
+          "percentage": 5
+        }
+      ],
+      "topCities": [
+        {
+          "name": "Ahmedabad",
+          "percentage": 28
+        },
+        {
+          "name": "Mumbai",
+          "percentage": 22
+        },
+        {
+          "name": "Delhi NCR",
+          "percentage": 16
+        },
+        {
+          "name": "Bangalore",
+          "percentage": 12
+        }
+      ],
+      "topCountries": [
+        {
+          "name": "India",
+          "percentage": 94
+        },
+        {
+          "name": "United States",
+          "percentage": 3
+        },
+        {
+          "name": "Others",
+          "percentage": 3
+        }
+      ]
+    },
+    "series": [
+      {
+        "metric": "reach",
+        "points": [
+          {
+            "date": "2026-06-05",
+            "label": "Jun 05",
+            "value": 4500
+          },
+          {
+            "date": "2026-06-12",
+            "label": "Jun 12",
+            "value": 6800
+          },
+          {
+            "date": "2026-06-19",
+            "label": "Jun 19",
+            "value": 7200
+          },
+          {
+            "date": "2026-06-26",
+            "label": "Jun 26",
+            "value": 6000
+          }
+        ]
+      }
+    ],
+    "topContent": [
+      {
+        "id": "reel-squat-form",
+        "title": "Technique Fix: The Proper Squat Depth",
+        "mediaType": "reel",
+        "url": "https://www.instagram.com/p/squatform",
+        "thumbnail": null,
+        "views": 8500,
+        "reach": 7200,
+        "likes": 620,
+        "comments": 88,
+        "shares": 240,
+        "saves": 410
+      }
+    ],
+    "extraction": {
+      "confidence": "high",
+      "warnings": [],
+      "unreadableFields": []
+    },
+    "creatorNotes": "Steady organic growth driven by the Squat Depth Technique breakdown reel.",
+    "status": "published",
+    "createdAt": "2026-07-01T12:00:00Z",
+    "updatedAt": "2026-07-01T12:00:00Z",
+    "publishedAt": "2026-07-01T12:00:00Z"
+  },
+  {
+    "id": "finance-q2-2026",
+    "schemaVersion": 1,
+    "persona": "finance",
+    "period": {
+      "type": "30d",
+      "startDate": "2026-06-01",
+      "endDate": "2026-06-30",
+      "label": "June 2026",
+      "days": 30
+    },
+    "source": {
+      "type": "instagram-insights-screenshots",
+      "screenshotCount": 4,
+      "uploadedAt": "2026-07-01T12:30:00Z"
+    },
+    "metrics": {
+      "followers": 15100,
+      "followerChange": 680,
+      "reach": 32000,
+      "impressions": 61000,
+      "profileVisits": 1900,
+      "accountsEngaged": 2500,
+      "contentInteractions": 4200,
+      "reelPlays": 24000,
+      "likes": 1800,
+      "comments": 320,
+      "shares": 910,
+      "saves": 1170,
+      "engagementRate": 2.9
+    },
+    "demographics": {
+      "gender": {
+        "male": 68,
+        "female": 28,
+        "otherOrUnspecified": 4
+      },
+      "ageRanges": [
+        {
+          "label": "18-24",
+          "percentage": 34
+        },
+        {
+          "label": "25-34",
+          "percentage": 48
+        },
+        {
+          "label": "35-44",
+          "percentage": 13
+        },
+        {
+          "label": "45+",
+          "percentage": 5
+        }
+      ],
+      "topCities": [
+        {
+          "name": "Mumbai",
+          "percentage": 26
+        },
+        {
+          "name": "Ahmedabad",
+          "percentage": 20
+        },
+        {
+          "name": "Delhi NCR",
+          "percentage": 19
+        },
+        {
+          "name": "Bangalore",
+          "percentage": 15
+        }
+      ],
+      "topCountries": [
+        {
+          "name": "India",
+          "percentage": 91
+        },
+        {
+          "name": "United Arab Emirates",
+          "percentage": 4
+        },
+        {
+          "name": "Others",
+          "percentage": 5
+        }
+      ]
+    },
+    "series": [
+      {
+        "metric": "reach",
+        "points": [
+          {
+            "date": "2026-06-05",
+            "label": "Jun 05",
+            "value": 6100
+          },
+          {
+            "date": "2026-06-12",
+            "label": "Jun 12",
+            "value": 8900
+          },
+          {
+            "date": "2026-06-19",
+            "label": "Jun 19",
+            "value": 9200
+          },
+          {
+            "date": "2026-06-26",
+            "label": "Jun 26",
+            "value": 7800
+          }
+        ]
+      }
+    ],
+    "topContent": [
+      {
+        "id": "reel-mutual-funds",
+        "title": "Mutual Funds vs Stocks for Beginners",
+        "mediaType": "reel",
+        "url": "https://www.instagram.com/p/mutualfunds",
+        "thumbnail": null,
+        "views": 12000,
+        "reach": 9800,
+        "likes": 920,
+        "comments": 145,
+        "shares": 380,
+        "saves": 520
+      }
+    ],
+    "extraction": {
+      "confidence": "high",
+      "warnings": [],
+      "unreadableFields": []
+    },
+    "creatorNotes": "Strong audience saves on the Mutual Funds explanation reel.",
+    "status": "published",
+    "createdAt": "2026-07-01T12:30:00Z",
+    "updatedAt": "2026-07-01T12:30:00Z",
+    "publishedAt": "2026-07-01T12:30:00Z"
+  }
+]

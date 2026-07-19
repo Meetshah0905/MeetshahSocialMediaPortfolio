@@ -1,0 +1,44 @@
+[
+  {
+    "id": "instagram_fitness",
+    "platform": "instagram",
+    "displayName": "Instagram Fitness",
+    "handle": "@meetsofficial",
+    "url": "https://www.instagram.com/meetsofficial/",
+    "primaryMetric": "followers",
+    "currentValue": 11900,
+    "previousValue": null,
+    "effectiveAt": "2026-07-01T00:00:00Z",
+    "updatedAt": "2026-07-01T00:00:00Z",
+    "updatedBy": "system-seed",
+    "published": true
+  },
+  {
+    "id": "instagram_finance",
+    "platform": "instagram",
+    "displayName": "Instagram Finance",
+    "handle": "@meet.fitfix",
+    "url": "https://www.instagram.com/meet.fitfix/",
+    "primaryMetric": "followers",
+    "currentValue": 15100,
+    "previousValue": null,
+    "effectiveAt": "2026-07-01T00:00:00Z",
+    "updatedAt": "2026-07-01T00:00:00Z",
+    "updatedBy": "system-seed",
+    "published": true
+  },
+  {
+    "id": "youtube_main",
+    "platform": "youtube",
+    "displayName": "YouTube Main",
+    "handle": "YouTube",
+    "url": null,
+    "primaryMetric": "subscribers",
+    "currentValue": 19700,
+    "previousValue": null,
+    "effectiveAt": "2026-07-01T00:00:00Z",
+    "updatedAt": "2026-07-01T00:00:00Z",
+    "updatedBy": "system-seed",
+    "published": true
+  }
+]

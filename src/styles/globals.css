@@ -1,0 +1,197 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   DESIGN TOKENS
+   --------------------------------------------------------------------------
+   Tailwind v4 is CSS-first — there is no tailwind.config.ts. Tokens declared
+   in @theme become both a CSS variable and a utility class automatically
+   (--color-primary -> bg-primary / text-primary / border-primary).
+   Font families are wired to next/font CSS variables set in layout.tsx.
+   ========================================================================== */
+
+@theme {
+  /* --- Base & Surface ----------------------------------------------- */
+  --color-background: #ffffff;
+  --color-surface: #ffffff;
+  --color-surface-soft: #f7f9fc;
+  --color-surface-blue: #eef4ff;
+
+  /* --- Text --------------------------------------------------------- */
+  --color-ink: #09101f;
+  --color-heading: #090d16;
+  --color-body: #485269;
+  --color-muted: #717b90;
+
+  /* --- Brand --------------------------------------------------------- */
+  --color-primary: #2f78ff;
+  --color-primary-deep: #174ea8;
+  --color-primary-light: #8cb8ff;
+  --color-primary-pale: #e6efff;
+
+  --color-blue: #2f78ff;
+  --color-blue-deep: #174ea8;
+  --color-blue-light: #8cb8ff;
+  --color-blue-pale: #e6efff;
+
+  /* --- Borders ------------------------------------------------------ */
+  --color-border: rgba(9, 16, 31, 0.1);
+  --color-border-blue: rgba(47, 120, 255, 0.2);
+
+  /* --- Status ------------------------------------------------------- */
+  --color-success: #178a55;
+  --color-warning: #a96500;
+  --color-danger: #c23a3a;
+
+  /* --- Typography --------------------------------------------------- */
+  --font-heading: var(--font-sora), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-handwritten: var(--font-caveat), cursive;
+  --font-display: var(--font-bebas-neue), sans-serif;
+
+  /* Fluid type scale (§7.3) */
+  --text-display-xl: clamp(3.2rem, 8vw, 7.5rem);
+  --text-display: clamp(2.7rem, 6vw, 5.8rem);
+  --text-h1: clamp(2.5rem, 5vw, 4.8rem);
+  --text-h2: clamp(2rem, 4vw, 3.8rem);
+  --text-h3: clamp(1.4rem, 2vw, 2rem);
+  --text-body-lg: clamp(1.125rem, 1.4vw, 1.3rem);
+
+  /* --- Radius ------------------------------------------------------- */
+  --radius-control: 12px;
+  --radius-control-lg: 16px;
+  --radius-card: 24px;
+  --radius-panel: 32px;
+
+  /* --- Shadows ------------------------------------------------------ */
+  --shadow-soft: 0 24px 70px rgba(20, 55, 110, 0.08);
+  --shadow-blue: 0 20px 60px rgba(47, 120, 255, 0.08);
+  --shadow-blue-lift: 0 26px 70px rgba(47, 120, 255, 0.15);
+  --shadow-card: 0 16px 50px rgba(20, 30, 60, 0.05);
+
+  /* --- Motion ------------------------------------------------------- */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ==========================================================================
+   BASE
+   ========================================================================== */
+
+html {
+  /* Lenis owns scrolling; native smooth would fight it. */
+  scroll-behavior: auto;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-body);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  /* Belt-and-braces against §28's "no horizontal overflow" rule. */
+  overflow-x: clip;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--color-heading);
+  font-family: var(--font-heading);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.04;
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+/* Focus: visible, consistent, never removed (§29). */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Lenis requires this to take over the scroll container. */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   UTILITIES
+   ========================================================================== */
+
+/* Type scale helpers — pair with a font-heading/font-sans class. */
+@utility text-display-xl {
+  font-size: var(--text-display-xl);
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+}
+
+@utility text-display {
+  font-size: var(--text-display);
+  line-height: 0.98;
+  letter-spacing: -0.035em;
+}
+
+@utility text-h1 {
+  font-size: var(--text-h1);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+}
+
+@utility text-h2 {
+  font-size: var(--text-h2);
+  line-height: 1.06;
+  letter-spacing: -0.03em;
+}
+
+@utility text-h3 {
+  font-size: var(--text-h3);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+@utility text-body-lg {
+  font-size: var(--text-body-lg);
+  line-height: 1.6;
+}
+
+/* A single blurred cloud blob. Positioned/sized inline by <BlurCloud>. */
+@utility cloud-blob {
+  position: absolute;
+  border-radius: 9999px;
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* ==========================================================================
+   REDUCED MOTION (§29)
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
