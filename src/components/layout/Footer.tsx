@@ -3,6 +3,7 @@ import { Mail, MapPin, Phone } from "lucide-react";
 import { footerNavigation } from "@/content/navigation";
 import { site, socials } from "@/content/site";
 import { footerContent } from "@/content/contact";
+import { recruitmentCopy } from "@/config/recruitment";
 import { BlurCloud } from "@/components/ui/BlurCloud";
 import { Container } from "@/components/ui/Container";
 import { InstagramIcon, LinkedinIcon, TwitterIcon } from "@/components/ui/icons";
@@ -104,8 +105,16 @@ export function Footer() {
           <p className="text-xs text-body/70">
             {footerContent.copyright(new Date().getFullYear())}
           </p>
-          <div className="flex items-center gap-5">
+          <div className="flex flex-wrap items-center gap-5">
             <p className="text-xs text-body/70">{site.role}</p>
+            {/* One discreet recruitment link — the main entry point for the
+                creator network per §2 of the recruitment spec. */}
+            <Link
+              href={recruitmentCopy.routeHref}
+              className="text-xs text-body/70 transition-colors hover:text-primary"
+            >
+              {recruitmentCopy.footerLinkLabel}
+            </Link>
             {/* Subtle by design (§27). */}
             <Link
               href="/analytics/admin"

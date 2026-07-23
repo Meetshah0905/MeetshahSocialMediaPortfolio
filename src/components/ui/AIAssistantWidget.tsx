@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { MessageSquare, X, Send, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -17,7 +18,12 @@ const SUGGESTED_QUESTIONS = [
   "What is the male-to-female audience split in Finance?",
 ];
 
+/**
+ * "Ask Meet Analytics" — mounted ONCE in the root layout (§13). Hidden on
+ * admin routes; the public chatbot has no business inside the admin shell.
+ */
 export function AIAssistantWidget() {
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -75,6 +81,11 @@ export function AIAssistantWidget() {
       setLoading(false);
     }
   };
+
+  // Public assistant only — never rendered inside the admin shell (§13).
+  if (pathname.startsWith("/admin") || pathname.startsWith("/analytics/admin")) {
+    return null;
+  }
 
   return (
     <div className="fixed bottom-6 right-6 z-50 select-none">

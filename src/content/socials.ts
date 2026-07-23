@@ -2,13 +2,11 @@ export const socials = {
   instagramFitness: {
     handle: "@meetsofficial",
     url: "https://www.instagram.com/meetsofficial/",
-    followers: "11.9K",
     label: "Fitness Instagram",
   },
   instagramFinance: {
     handle: "@meet.fitfix",
     url: "https://www.instagram.com/meet.fitfix/",
-    followers: "15.1K",
     label: "Finance Instagram",
   },
   email: {
@@ -29,7 +27,6 @@ export const socials = {
     country: "India",
     display: "Ahmedabad, India",
   },
-  combinedCommunity: "27K+",
-} as const;
+};
 
 export type SocialConfig = typeof socials;

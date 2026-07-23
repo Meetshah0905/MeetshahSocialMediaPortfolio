@@ -57,7 +57,7 @@ export default function SketchfabViewer({ model, className }: SketchfabViewerPro
   return (
     <div
       ref={containerRef}
-      className={`relative w-full aspect-video rounded-lg overflow-hidden border border-border bg-white shadow-soft flex items-center justify-center ${className}`}
+      className={`relative w-full h-full rounded-lg overflow-hidden flex items-center justify-center ${className}`}
     >
       {/* Intersection Trigger or Skeleton */}
       {!isInViewport && (

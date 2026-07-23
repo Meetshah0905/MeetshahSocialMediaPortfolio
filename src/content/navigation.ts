@@ -14,9 +14,10 @@ export const navigation: NavItem[] = [
   { label: "Work With Me", href: "/work-with-me", inDesktopNav: true },
   { label: "Fitness", href: "/fitness", inDesktopNav: true },
   { label: "Finance", href: "/finance", inDesktopNav: true },
+  { label: "UGC", href: "/ugc", inDesktopNav: true },
   { label: "Analytics", href: "/analytics", inDesktopNav: true },
   { label: "About", href: "/about", inDesktopNav: true },
-  { label: "UGC & Content", href: "/ugc", inDesktopNav: false },
+  { label: "Join Creator Team", href: "/join-creator-team", inDesktopNav: true },
   { label: "Contact", href: "/contact", inDesktopNav: false },
 ];
 

@@ -41,6 +41,13 @@ yarn-error.log*
 # local development report storage (§22) — real analytics, not fixtures
 /data/dev-reports.json
 
+# runtime state written by the local JSON storage adapter
+/data/audit.json
+/data/history.json
+
+# local PDF blob fallback — real (or smoke-test) uploads, not source
+/public/uploads/
+
 # playwright
 /test-results/
 /playwright-report/

@@ -2,91 +2,26 @@ import type { Metadata } from "next";
 import { Container } from "@/components/ui/Container";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
-import { SafeImage } from "@/components/ui/SafeImage";
 import { ArrowPillButton } from "@/components/ui/ArrowPillButton";
-import { MessageCircle, FileText, Mail } from "lucide-react";
+import { Mail } from "lucide-react";
 import { socialUrls } from "@/content/site";
+import { UGCHero } from "@/components/ugc/UGCHero";
+import { CreativeLab } from "@/components/ugc/CreativeLab";
 
 export const metadata: Metadata = {
   title: "UGC & Content Strategy Portfolio",
   description: "Browse Meet Shah's UGC video examples, hook patterns, high-retention editing styles, and content frameworks for social media campaigns.",
 };
 
-const VIDEOS = [
-  {
-    title: "Supplement Brand Explainer",
-    category: "Fitness UGC",
-    duration: "45s",
-    hook: "The mistake 90% of gym-goers make with protein timing.",
-    angle: "Educational / Problem-solving",
-    cta: "Shop now with 15% discount code",
-  },
-  {
-    title: "Personal Budgeting App Walkthrough",
-    category: "Finance UGC",
-    duration: "52s",
-    hook: "I tracked my expenses for 30 days. Here is what I discovered.",
-    angle: "App screen demo / Social proof",
-    cta: "Sign up for free via link in bio",
-  },
-  {
-    title: "Healthy Snack Product Review",
-    category: "Lifestyle UGC",
-    duration: "30s",
-    hook: "Stop eating boring diet food. Try this high-protein snack instead.",
-    angle: "Product taste test / Lifestyle integration",
-    cta: "Available at local stores",
-  },
-];
-
 export default function UGCPage() {
   return (
     <div className="bg-[#f7f7f4] text-[#080b12] min-h-screen">
-      {/* Hero / Overview with Studio Poster */}
-      <Section tone="soft" spacing="default" className="pt-24 lg:pt-32 pb-16 bg-white border-b border-[#0a0a0a]/10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          <div className="lg:col-span-7 flex flex-col items-start text-left space-y-6">
-            <Badge className="bg-[#2e7bff] text-white border-transparent">
-              UGC & Creative Director
-            </Badge>
-            <h1 className="font-heading text-4xl sm:text-6xl font-bold tracking-tight text-[#080b12] leading-tight">
-              High-retention UGC <br />
-              <span className="text-[#2e7bff]">built for conversions.</span>
-            </h1>
-            <p className="text-base sm:text-lg text-[#3f4651] max-w-[48ch] leading-relaxed">
-              I script, shoot, and edit custom vertical videos designed to blend seamlessly into organic social feeds. I build concepts based on proven high-retention frameworks to drive engagement and clicks.
-            </p>
-            <div className="flex gap-4">
-              <ArrowPillButton href="/contact?vertical=ugc" size="md">
-                Get Custom UGC Video
-              </ArrowPillButton>
-            </div>
-          </div>
+      {/* 1. REBUILT ASYMMETRICAL UGC HERO SECTION */}
+      <UGCHero />
 
-          {/* Right: Creator Studio Poster */}
-          <div className="lg:col-span-5 flex justify-center">
-            <div className="relative w-full max-w-[500px] aspect-[2752/1536] rounded-panel overflow-hidden border border-[#0a0a0a]/10 shadow-2xl bg-white">
-              <SafeImage
-                src="/images/meet/meet-studio-poster.jpg"
-                alt="Meet Shah Creator Studio Poster"
-                label="Studio poster"
-                fill
-                priority
-                sizes="(max-width: 768px) 100vw, 500px"
-                className="object-cover"
-              />
-              <div className="absolute bottom-4 left-4 bg-[#080b12]/95 backdrop-blur-md px-3.5 py-1.5 rounded-md text-white text-[10px] font-semibold uppercase tracking-wider">
-                Behind the scenes
-              </div>
-            </div>
-          </div>
-        </div>
-      </Section>
-
-      {/* UGC Creative Frameworks */}
-      <Section tone="default" spacing="default" className="bg-[#f7f7f4]">
+      {/* 2. UGC CREATIVE FRAMEWORKS */}
+      <Section tone="default" spacing="default" className="bg-[#f7f7f4]" id="frameworks">
         <SectionHeading
           eyebrow="Retention Design"
           heading="Structure of a High-Performing UGC Video"
@@ -134,81 +69,13 @@ export default function UGCPage() {
         </div>
       </Section>
 
-      {/* Video Concepts Portfolio with Content Poster */}
-      <Section tone="soft" spacing="default" className="bg-white border-y border-[#0a0a0a]/10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-          {/* Left Side: Content Poster */}
-          <div className="lg:col-span-4 flex justify-center">
-            <div className="relative w-full max-w-[500px] aspect-[2752/1536] rounded-panel overflow-hidden border border-[#0a0a0a]/10 shadow-lg bg-white">
-              <SafeImage
-                src="/images/meet/meet-content-poster.jpg"
-                alt="Meet Shah Editorial Content Poster"
-                label="Content poster"
-                fill
-                sizes="(max-width: 768px) 100vw, 500px"
-                className="object-cover"
-              />
-            </div>
-          </div>
+      {/* 3. THE CREATIVE LAB WORKSPACE */}
+      <CreativeLab />
 
-          {/* Right Side: Concepts list */}
-          <div className="lg:col-span-8 space-y-6">
-            <SectionHeading
-              eyebrow="Creative Concepts"
-              heading="Video Concepts Breakdown"
-              supporting="A structured view of how video briefs are translated into actual screen concepts."
-              align="start"
-            />
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-              {VIDEOS.map((video) => (
-                <Card key={video.title} className="p-6 border border-[#0a0a0a]/10 bg-[#f7f7f4] flex flex-col justify-between hover:border-[#2e7bff]/20 transition-colors h-full">
-                  <div>
-                    <span className="text-[10px] font-bold text-[#2e7bff] uppercase tracking-widest block">
-                      {video.category} • {video.duration}
-                    </span>
-                    <h3 className="font-heading text-sm font-bold text-[#080b12] mt-2">
-                      {video.title}
-                    </h3>
-
-                    <div className="mt-4 space-y-3">
-                      <div className="flex gap-2.5 items-start">
-                        <MessageCircle className="size-4 text-[#2e7bff] shrink-0 mt-0.5" />
-                        <div>
-                          <span className="text-[9px] font-bold text-[#080b12] block uppercase tracking-wider">Hook</span>
-                          <p className="text-xs text-[#3f4651] leading-relaxed mt-0.5">“{video.hook}”</p>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-2.5 items-start">
-                        <FileText className="size-4 text-[#2e7bff] shrink-0 mt-0.5" />
-                        <div>
-                          <span className="text-[9px] font-bold text-[#080b12] block uppercase tracking-wider">Angle</span>
-                          <p className="text-xs text-[#3f4651] leading-relaxed mt-0.5">{video.angle}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-6 pt-4 border-t border-[#0a0a0a]/10 flex items-center justify-between">
-                    <span className="text-[9px] font-bold text-[#3f4651] uppercase tracking-wider">
-                      CTA target
-                    </span>
-                    <span className="text-xs text-[#155de1] font-semibold">
-                      {video.cta}
-                    </span>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </div>
-      </Section>
-
-      {/* Final CTA */}
+      {/* 4. FINAL CTA */}
       <section className="bg-[#080b12] text-white py-16 text-center">
         <Container className="flex flex-col items-center">
-          <h2 className="font-heading text-2xl sm:text-4xl font-bold tracking-tight">
+          <h2 className="font-heading text-2xl sm:text-4xl font-bold tracking-tight text-white">
             Need high-converting UGC assets?
           </h2>
           <p className="mt-4 text-white/70 max-w-[45ch] text-xs sm:text-sm leading-relaxed">

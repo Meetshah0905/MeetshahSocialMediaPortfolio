@@ -144,32 +144,52 @@ export function MobileMenu() {
             </div>
 
             <div className="flex-1 overflow-y-auto px-5 pb-10 sm:px-8">
-              <ul className="flex flex-col">
+              <ul className="flex flex-col space-y-1 py-4">
                 {navigation.map((item) => {
                   const active =
                     item.href === "/"
                       ? pathname === "/"
                       : pathname === item.href || pathname.startsWith(item.href + "/");
+                  
+                  if (item.href === "/join-creator-team") {
+                    return (
+                      <li key={item.href} className="pt-4">
+                        <Link
+                          href={item.href}
+                          className="flex min-h-12 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-3.5 text-base font-semibold text-white shadow-md shadow-blue-500/20 active:scale-[0.98] transition-all"
+                        >
+                          <span>{item.label}</span>
+                          <span className="text-xl">↗</span>
+                        </Link>
+                      </li>
+                    );
+                  }
+
                   return (
                     <li key={item.href}>
                       <Link
                         href={item.href}
                         aria-current={active ? "page" : undefined}
                         className={cn(
-                          "flex min-h-14 items-center border-b border-border text-xl",
-                          active ? "text-primary" : "text-foreground",
+                          "flex min-h-12 items-center rounded-xl px-4 text-lg font-medium transition-all duration-200",
+                          active
+                            ? "bg-blue-50 text-blue-600 font-semibold border border-blue-200/70"
+                            : "text-slate-700 hover:bg-slate-100 hover:text-slate-900",
                         )}
                       >
-                        {item.label}
+                        {active && (
+                          <span className="mr-2.5 size-2 rounded-full bg-blue-600 animate-pulse shadow-[0_0_6px_rgba(37,99,235,0.8)]" />
+                        )}
+                        <span>{item.label}</span>
                       </Link>
                     </li>
                   );
                 })}
               </ul>
 
-              <div className="mt-8">
-                <ArrowPillButton href={primaryCta.href} size="lg" fullWidth>
-                  {primaryCta.label}
+              <div className="mt-6 border-t border-slate-200/80 pt-6">
+                <ArrowPillButton href="/work-with-me" size="lg" fullWidth>
+                  Let&apos;s Collaborate
                 </ArrowPillButton>
               </div>
 

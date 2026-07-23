@@ -1,16 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isAuthenticated } from "@/lib/auth/session";
-import { getReport, saveReport } from "@/lib/storage/db";
+import { getReport, saveReport, logAdminAction } from "@/lib/storage/db";
+import { blobExists } from "@/lib/storage/pdfBlob";
 
-type Params = {
-  params: Promise<{
-    reportId: string;
-  }>;
-};
+type Params = { params: Promise<{ reportId: string }> };
 
 export async function POST(request: NextRequest, { params }: Params) {
   try {
-    if (!isAuthenticated(request)) {
+    if (!(await isAuthenticated(request))) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -20,17 +17,44 @@ export async function POST(request: NextRequest, { params }: Params) {
       return NextResponse.json({ error: "Report not found" }, { status: 404 });
     }
 
+    if (!existing.pdfStorageKey || !existing.pdfUrl) {
+      return NextResponse.json(
+        { error: "Upload the PDF before publishing." },
+        { status: 400 },
+      );
+    }
+
+    // Verify the file is still present before making the record public.
+    const present = await blobExists(existing.pdfStorageKey);
+    if (!present) {
+      return NextResponse.json(
+        { error: "The PDF file is missing from storage. Re-upload before publishing." },
+        { status: 409 },
+      );
+    }
+
+    const now = new Date().toISOString();
     const updated = {
       ...existing,
       status: "published" as const,
-      publishedAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      publishedAt: now,
+      archivedAt: null,
+      updatedAt: now,
     };
-
     await saveReport(updated);
 
+    await logAdminAction({
+      id: `audit-${Date.now()}`,
+      adminId: "admin",
+      action: "PUBLISH_REPORT",
+      entityType: "REPORT",
+      entityId: existing.id,
+      createdAt: now,
+    });
+
     return NextResponse.json({ success: true, report: updated });
-  } catch (err: any) {
+  } catch (err) {
+    console.error("Publish failed:", err);
     return NextResponse.json({ error: "Failed to publish report" }, { status: 500 });
   }
 }

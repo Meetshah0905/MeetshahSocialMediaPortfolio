@@ -1,22 +1,67 @@
 "use client";
 
+import { useRef } from "react";
 import { Container } from "@/components/ui/Container";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { ArrowPillButton } from "@/components/ui/ArrowPillButton";
 import { InstagramIcon } from "@/components/ui/icons";
-import { channels } from "@/content/site";
 import { CheckCircle2, Dumbbell, Flame, Apple, Sparkles, FileText, Download } from "lucide-react";
 import Image from "next/image";
 import { imageManifest } from "@/content/imageManifest";
 import { WhiteAtmosphereSection } from "@/components/ui/WhiteAtmosphereSection";
+import { formatCompact } from "@/lib/utils/numbers";
+import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
+import ChannelPerformanceSnapshot from "@/components/analytics/ChannelPerformanceSnapshot";
 
-const STATS = [
-  { value: "11.9K", label: "Instagram Followers", sub: "Highly engaged niche community" },
-  { value: "24.5K+", label: "Monthly Account Reach", sub: "Organic video impressions" },
-  { value: "3.2%", label: "Average Engagement Rate", sub: "Niche benchmark 1.8%" },
-  { value: "92%", label: "Saves & Shares Growth", sub: "High utility-value content" },
-];
+import HeroParticles from "@/components/ui/HeroParticles";
+import { HeroMaroonAtmosphere } from "@/components/home/HeroMaroonAtmosphere";
+import { useCinematicHeroMotion } from "@/lib/hooks/useCinematicHeroMotion";
+
+// Vector Decorations
+const WeightPlateDeco = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 100 100" fill="none" stroke="currentColor">
+    <circle cx="50" cy="50" r="45" strokeWidth="0.5" strokeDasharray="3 3" />
+    <circle cx="50" cy="50" r="35" strokeWidth="1" />
+    <circle cx="50" cy="50" r="10" strokeWidth="1" />
+    <path d="M 50 15 L 50 35 M 50 65 L 50 85 M 15 50 L 35 50 M 65 50 L 85 50" strokeWidth="0.5" />
+    <text x="50" y="53" textAnchor="middle" fontSize="8" fontWeight="bold" fill="currentColor" stroke="none" fontFamily="monospace">20KG</text>
+  </svg>
+);
+
+const GymGridDeco = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 100 100" fill="none" stroke="currentColor">
+    <path d="M 10 0 L 10 100 M 30 0 L 30 100 M 50 0 L 50 100 M 70 0 L 70 100 M 90 0 L 90 100" strokeWidth="0.25" strokeDasharray="2 2" />
+    <path d="M 0 10 L 100 10 M 0 30 L 100 30 M 0 50 L 100 50 M 0 70 L 100 70 M 0 90 L 100 90" strokeWidth="0.25" strokeDasharray="2 2" />
+    <circle cx="50" cy="50" r="0.75" fill="currentColor" />
+    <circle cx="10" cy="30" r="0.75" fill="currentColor" />
+    <circle cx="90" cy="70" r="0.75" fill="currentColor" />
+  </svg>
+);
+
+const TrainingArrowsDeco = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 100 100" fill="none" stroke="currentColor">
+    <path d="M 15 50 C 30 20, 70 20, 85 50" strokeWidth="0.75" strokeDasharray="2 2" />
+    <polygon points="85,50 80,44 88,46" fill="currentColor" />
+    <path d="M 85 50 C 70 80, 30 80, 15 50" strokeWidth="0.75" strokeDasharray="2 2" />
+    <polygon points="15,50 20,56 12,54" fill="currentColor" />
+    <text x="50" y="47" textAnchor="middle" fontSize="5" fontFamily="monospace" fill="currentColor" stroke="none">REPETITION ARC</text>
+  </svg>
+);
+
+const DumbbellDeco = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 100 100" fill="none" stroke="currentColor">
+    <rect x="25" y="46" width="50" height="8" rx="2" strokeWidth="1" />
+    <rect x="20" y="25" width="5" height="50" rx="2" strokeWidth="1" />
+    <rect x="15" y="30" width="5" height="40" rx="2" strokeWidth="1" />
+    <rect x="9" y="35" width="6" height="30" rx="2" strokeWidth="1" />
+    <rect x="75" y="25" width="5" height="50" rx="2" strokeWidth="1" />
+    <rect x="80" y="30" width="5" height="40" rx="2" strokeWidth="1" />
+    <rect x="85" y="35" width="6" height="30" rx="2" strokeWidth="1" />
+    <text x="50" y="52" textAnchor="middle" fontSize="4.5" fontWeight="bold" fill="currentColor" stroke="none" fontFamily="monospace">POWER</text>
+  </svg>
+);
 
 const PROGRAMS = [
   {
@@ -36,72 +81,216 @@ const PROGRAMS = [
   },
 ];
 
-export default function FitnessClientPage() {
-  const channel = channels.fitness;
+interface FitnessClientPageProps {
+  initialFollowers: number;
+}
+
+export default function FitnessClientPage({ initialFollowers }: FitnessClientPageProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const followerDisplay =
+    initialFollowers > 0 ? formatCompact(initialFollowers) : "—"; // never a fake stand-in (§2)
+
+  const STATS = [
+    { value: followerDisplay, label: "Instagram Followers", sub: "Highly engaged niche community" },
+    { value: "24.5K+", label: "Monthly Account Reach", sub: "Organic video impressions" },
+    { value: "3.2%", label: "Average Engagement Rate", sub: "Niche benchmark 1.8%" },
+    { value: "92%", label: "Saves & Shares Growth", sub: "High utility-value content" },
+  ];
+
+  useGSAP(() => {
+    // Check prefers-reduced-motion
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      // Instantly make elements fully visible
+      gsap.set(".hero-eyebrow, .hero-heading-line, .hero-body, .hero-buttons, .hero-badge", { opacity: 1, scale: 1, y: 0 });
+      gsap.set(".hero-image-wrap", { clipPath: "inset(0 0 0 0)" });
+      return;
+    }
+
+    const tl = gsap.timeline();
+
+    // 1. Eyebrow reveals
+    tl.fromTo(
+      ".hero-eyebrow",
+      { opacity: 0, y: 15 },
+      { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }
+    );
+
+    // 2. Heading reveals line by line
+    tl.fromTo(
+      ".hero-heading-line",
+      { opacity: 0, y: 25 },
+      { opacity: 1, y: 0, stagger: 0.15, duration: 0.8, ease: "power3.out" },
+      "-=0.4"
+    );
+
+    // 3. Body copy fades upward
+    tl.fromTo(
+      ".hero-body",
+      { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" },
+      "-=0.4"
+    );
+
+    // 4. Buttons appear
+    tl.fromTo(
+      ".hero-buttons",
+      { opacity: 0, y: 15 },
+      { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" },
+      "-=0.3"
+    );
+
+    // 5. Large Fitness artwork reveals through a right-to-left mask
+    tl.fromTo(
+      ".hero-image-wrap",
+      { clipPath: "inset(0 0 0 100%)" },
+      { clipPath: "inset(0 0 0 0%)", duration: 1.2, ease: "power3.inOut" },
+      "-=0.8"
+    );
+
+    // 6. Follower badge appears last
+    tl.fromTo(
+      ".hero-badge",
+      { opacity: 0, scale: 0.8 },
+      { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.7)" },
+      "-=0.2"
+    );
+
+    // 7. Decorative outlines drift slowly
+    gsap.to(".gym-deco-plate", {
+      x: "random(-8, 8)",
+      y: "random(-8, 8)",
+      duration: 8,
+      repeat: -1,
+      yoyo: true,
+      ease: "sine.inOut"
+    });
+    
+    gsap.to(".gym-deco-dumbbell", {
+      x: "random(-6, 6)",
+      y: "random(-6, 6)",
+      duration: 10,
+      repeat: -1,
+      yoyo: true,
+      ease: "sine.inOut"
+    });
+
+    gsap.to(".gym-deco-arrows", {
+      x: "random(-10, 10)",
+      y: "random(-10, 10)",
+      duration: 9,
+      repeat: -1,
+      yoyo: true,
+      ease: "sine.inOut"
+    });
+  }, { scope: containerRef });
+
+  // Mouse Parallax Effect
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const { clientX, clientY } = e;
+    const x = (clientX - window.innerWidth / 2) * 0.012;
+    const y = (clientY - window.innerHeight / 2) * 0.012;
+
+    gsap.to(".parallax-layer", {
+      x: x,
+      y: y,
+      duration: 1,
+      ease: "power2.out"
+    });
+  };
+
+  const scopeRef = useRef<HTMLElement>(null);
+  const heroMaskRef = useRef<HTMLDivElement>(null);
+  const heroImageRef = useRef<HTMLImageElement>(null);
+  const lightSweepRef = useRef<HTMLDivElement>(null);
+  const pillsRef = useRef<HTMLDivElement>(null);
+  const ctasRef = useRef<HTMLDivElement>(null);
+
+  useCinematicHeroMotion({
+    scopeRef,
+    heroMaskRef,
+    heroImageRef,
+    lightSweepRef,
+    pillsRef,
+    ctasRef,
+  });
 
   return (
-    <div className="bg-white text-ink min-h-screen">
-      {/* Hero / Overview */}
-      <WhiteAtmosphereSection grid={true} halo="both" className="pt-24 lg:pt-32 pb-16 bg-white border-b border-border">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center max-w-7xl mx-auto px-6">
-          {/* Left info */}
-          <div className="lg:col-span-7 text-left flex flex-col items-start space-y-6">
-            <Badge className="bg-blue text-white border-transparent">
-              Fitness Vertical
-            </Badge>
+    <div ref={containerRef} className="bg-white text-ink min-h-screen relative overflow-x-hidden" onMouseMove={handleMouseMove}>
+      
+      {/* 1. CINEMATIC HERO SECTION */}
+      <section ref={scopeRef} className="relative w-full bg-[#050811] overflow-clip flex flex-col items-center select-none pt-2 pb-8 md:pt-4 md:pb-10">
+        <HeroMaroonAtmosphere theme="blue" />
+        <HeroParticles theme="blue" />
 
-            <h1 className="font-heading text-4xl sm:text-6xl font-bold tracking-tight text-ink leading-tight">
-              Helping you improve your body <br />
-              <span className="text-blue">the right way.</span>
-            </h1>
+        <div
+          ref={heroMaskRef}
+          className="w-full max-w-[1400px] px-3 sm:px-6 relative flex justify-center items-center z-10"
+        >
+          <div className="relative w-full overflow-hidden rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.5),0_0_80px_rgba(220,60,80,0.15)] border border-white/10">
+            <Image
+              ref={heroImageRef}
+              src={imageManifest.fitnessHero.src}
+              alt={imageManifest.fitnessHero.alt}
+              width={2752}
+              height={1536}
+              priority
+              quality={100}
+              sizes="(max-width: 1400px) 100vw, 1400px"
+              className="block w-full h-auto max-h-[78vh] object-contain mx-auto scale-[1.01]"
+            />
 
-            <p className="text-base sm:text-lg text-body max-w-[48ch] leading-relaxed">
-              Practical fitness content focused on training, diet, technique and sustainable discipline. Through my handle{" "}
-              <a
-                href={channel.profileUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue hover:underline font-semibold"
-              >
-                {channel.handle}
-              </a>
-              , I simplify bodybuilding and lifestyle modification.
-            </p>
+            {/* Light Sweep Highlight Overlay */}
+            <div
+              ref={lightSweepRef}
+              className="absolute inset-0 pointer-events-none z-10"
+              style={{
+                background: `linear-gradient(110deg, transparent 20%, rgba(255, 255, 255, 0.12) 43%, rgba(80, 145, 255, 0.12) 50%, transparent 70%)`,
+                width: "100%",
+                height: "100%",
+              }}
+            />
 
-            <div className="flex flex-wrap gap-4 items-center pt-2">
-              <ArrowPillButton href="/contact?vertical=fitness" size="md">
-                Book a 1:1 Session
-              </ArrowPillButton>
-              <a
-                href={channel.profileUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex min-h-12 items-center gap-2 border border-border px-5 rounded-full text-sm font-semibold hover:bg-surface-soft transition-colors"
-              >
-                <InstagramIcon className="size-4 text-blue" />
-                Follow {channel.handle}
-              </a>
-            </div>
-          </div>
-
-          {/* Right Image (Landscape Poster at native aspect ratio, no 3D Dumbbell in hero) */}
-          <div className="lg:col-span-5 flex flex-col items-center w-full">
-            <div className="relative w-full aspect-video rounded-panel overflow-hidden border border-border bg-white shadow-soft">
-              <Image
-                src={imageManifest.fitnessHero.src}
-                alt={imageManifest.fitnessHero.alt}
-                fill
-                priority
-                sizes="(max-width: 768px) 100vw, 500px"
-                className="object-cover"
-              />
-              <div className="absolute top-4 right-4 bg-blue px-3 py-1 rounded-full text-white text-xs font-bold shadow-md">
-                {channel.followerDisplay} Followers
-              </div>
+            {/* Follower badge */}
+            <div className="hero-badge absolute top-4 right-4 bg-blue px-3.5 py-1.5 rounded-full text-white text-[11px] font-bold shadow-md z-20 flex items-center gap-1.5">
+              <InstagramIcon className="size-3.5 fill-white stroke-none" />
+              <span>{followerDisplay} Followers</span>
             </div>
           </div>
         </div>
-      </WhiteAtmosphereSection>
+
+        {/* CTAs & Badges row positioned underneath */}
+        <div className="relative w-full max-w-[1400px] z-20 mt-5 px-6">
+          <Container className="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div ref={pillsRef} className="flex gap-3">
+              <span className="bg-blue text-white px-3.5 py-1.5 rounded-full text-[10px] font-heading font-bold uppercase tracking-widest border border-blue-light/20 shadow-soft">
+                FITNESS CREATOR
+              </span>
+              <span className="bg-white/10 backdrop-blur-md text-white px-3.5 py-1.5 rounded-full text-[10px] font-heading font-bold uppercase tracking-widest border border-white/20 shadow-xs">
+                @meetsofficial
+              </span>
+            </div>
+
+            <div ref={ctasRef} className="flex gap-3 w-full sm:w-auto">
+              <ArrowPillButton href="/contact?vertical=fitness" size="md" className="flex-1 sm:flex-initial">
+                Explore Fitness Content
+              </ArrowPillButton>
+              <a
+                href="https://www.instagram.com/meetsofficial/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-11 items-center justify-center gap-2 border border-white/20 bg-white/10 hover:bg-white/20 text-white px-5 rounded-full text-xs font-semibold transition-colors flex-1 sm:flex-initial"
+              >
+                <InstagramIcon className="size-4 text-white" />
+                <span>@meetsofficial</span>
+              </a>
+            </div>
+          </Container>
+        </div>
+      </section>
+
+      {/* Transition to white section */}
+      <div className="relative h-10 bg-white rounded-t-[32px] z-30 border-t border-border" />
 
       {/* Stats Grid */}
       <section className="border-b border-border py-12 bg-white">
@@ -198,46 +387,43 @@ export default function FitnessClientPage() {
         </div>
       </WhiteAtmosphereSection>
 
-      {/* Fitness Analytics Archive Integration */}
-      <WhiteAtmosphereSection halo="right" className="bg-white border-t border-border py-16">
-        <Container>
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            <div className="lg:col-span-8 text-left space-y-4">
-              <Badge className="bg-blue/10 text-blue border-transparent">Verified Metrics</Badge>
-              <h3 className="font-heading text-2xl sm:text-3xl font-bold text-ink">
-                Fitness Channel Insights
-              </h3>
-              <p className="text-xs sm:text-sm text-body max-w-[50ch] leading-relaxed">
-                Analyze weekly reach growth, engagement metrics, and location demographics extracted directly from creator console screenshots.
-              </p>
-            </div>
-            <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col gap-4">
-              <ArrowPillButton href="/analytics/fitness" size="md">
-                <FileText className="size-4 mr-2" />
-                View Fitness Analytics
-              </ArrowPillButton>
-              <a
-                href="/api/reports/latest-fitness/pdf"
-                className="inline-flex min-h-12 items-center justify-center gap-2 border border-blue text-blue hover:bg-blue/5 px-5 rounded-full text-xs font-semibold transition-colors"
-              >
-                <Download className="size-4" />
-                Download Latest Fitness PDF
-              </a>
-            </div>
+      {/* Fitness Analytics Performance Snapshot */}
+      <WhiteAtmosphereSection halo="right" className="bg-white border-t border-border py-16 text-center">
+        <Container className="space-y-8">
+          <div className="text-center max-w-xl mx-auto space-y-3 mb-6">
+            <Badge className="bg-blue/10 text-blue border-transparent">Analytics Snapshot</Badge>
+            <h3 className="font-heading text-3xl font-bold text-ink">Latest Channel Performance</h3>
+            <p className="text-xs text-body leading-relaxed">
+              Reach, engagement and content metrics from the latest creator-published fitness insights report.
+            </p>
           </div>
+          <ChannelPerformanceSnapshot source="instagram_fitness" />
         </Container>
       </WhiteAtmosphereSection>
 
-      {/* CTA Band */}
-      <section className="bg-ink text-white py-16 text-center border-t border-border">
-        <Container className="flex flex-col items-center">
-          <h2 className="font-heading text-2xl sm:text-4xl font-bold tracking-tight text-white">
+      {/* Light Editorial CTA Band */}
+      <section 
+        className="relative py-20 text-center border-t border-border overflow-hidden bg-white select-none"
+        style={{
+          background: "radial-gradient(circle at 50% 50%, rgba(47, 120, 255, 0.05), transparent 60%), #ffffff"
+        }}
+      >
+        <GymGridDeco className="absolute inset-0 w-full h-full text-blue/3 opacity-30 pointer-events-none" />
+        <WeightPlateDeco className="absolute top-[10%] left-[8%] size-24 text-blue/8 pointer-events-none" />
+        <DumbbellDeco className="absolute bottom-[10%] right-[8%] size-28 text-blue/6 pointer-events-none" />
+        
+        <Container className="flex flex-col items-center max-w-2xl relative z-10 space-y-6">
+          <Badge className="bg-blue text-white border-transparent">1:1 Coaching</Badge>
+          <h2 className="font-heading text-3xl sm:text-4xl font-bold tracking-tight text-ink">
             Ready to reach your fitness goals?
           </h2>
-          <p className="mt-4 text-white/70 max-w-[45ch] text-xs sm:text-sm leading-relaxed">
-            Book a 1:1 online strategy session to fix your program, align your diet, and build a workout rhythm.
+          <p className="text-xs sm:text-sm text-body leading-relaxed">
+            Book a 1:1 online strategy session to fix your workout rhythm, align your macro targets, and establish correct technique habits.
           </p>
-          <div className="mt-8">
+          <div className="font-mono text-[9px] tracking-widest text-blue/40">
+            [ TRAINING NOTE: WEEKEND SLOTS ONLY // Ahmedabad & Online ]
+          </div>
+          <div>
             <ArrowPillButton href="/contact?vertical=fitness" size="md">
               Apply for 1:1 Fitness Session
             </ArrowPillButton>

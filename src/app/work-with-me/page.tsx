@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Container } from "@/components/ui/Container";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
@@ -11,6 +11,10 @@ import Image from "next/image";
 import { socialUrls } from "@/content/site";
 import { imageManifest } from "@/content/imageManifest";
 import { WhiteAtmosphereSection } from "@/components/ui/WhiteAtmosphereSection";
+
+import HeroParticles from "@/components/ui/HeroParticles";
+import { HeroMaroonAtmosphere } from "@/components/home/HeroMaroonAtmosphere";
+import { useCinematicHeroMotion } from "@/lib/hooks/useCinematicHeroMotion";
 
 const SERVICES_LIST = [
   {
@@ -96,49 +100,89 @@ const SCOPING_FACTORS = [
 export default function WorkWithMePage() {
   const [activeServiceIdx, setActiveServiceIdx] = useState(0);
 
+  const scopeRef = useRef<HTMLElement>(null);
+  const heroMaskRef = useRef<HTMLDivElement>(null);
+  const heroImageRef = useRef<HTMLImageElement>(null);
+  const lightSweepRef = useRef<HTMLDivElement>(null);
+  const pillsRef = useRef<HTMLDivElement>(null);
+  const ctasRef = useRef<HTMLDivElement>(null);
+
+  useCinematicHeroMotion({
+    scopeRef,
+    heroMaskRef,
+    heroImageRef,
+    lightSweepRef,
+    pillsRef,
+    ctasRef,
+  });
+
   return (
     <div className="bg-white text-ink min-h-screen">
-      {/* 1. HERO SECTION */}
-      <WhiteAtmosphereSection grid={true} halo="both" className="pt-24 lg:pt-32 pb-16 bg-white border-b border-border">
-        <Container>
-          <div className="flex flex-col items-start text-left space-y-6 max-w-4xl">
-            <Badge className="bg-blue text-white border-transparent">
-              BRAND COLLABORATIONS
-            </Badge>
-            <h1 className="font-heading text-4xl sm:text-6xl font-bold tracking-tight text-ink leading-tight">
-              Creator partnerships built around <br />
-              <span className="text-blue">a clear campaign objective.</span>
-            </h1>
-            <p className="text-sm sm:text-base text-body max-w-[65ch] leading-relaxed">
-              From short-form content and UGC production to integrated creator campaigns, every collaboration is scoped around the brief, platform, audience and usage requirements.
-            </p>
-            <div className="flex flex-wrap gap-4">
-              <ArrowPillButton href="/contact" size="md">
-                Share Your Campaign Brief
+      {/* 1. CINEMATIC HERO SECTION */}
+      <section ref={scopeRef} className="relative w-full bg-[#050811] overflow-clip flex flex-col items-center select-none pt-2 pb-8 md:pt-4 md:pb-10">
+        <HeroMaroonAtmosphere theme="blue" />
+        <HeroParticles theme="blue" />
+
+        <div
+          ref={heroMaskRef}
+          className="w-full max-w-[1400px] px-3 sm:px-6 relative flex justify-center items-center z-10"
+        >
+          <div className="relative w-full overflow-hidden rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.5),0_0_80px_rgba(220,60,80,0.15)] border border-white/10">
+            <Image
+              ref={heroImageRef}
+              src={imageManifest.collaborateHero.src}
+              alt={imageManifest.collaborateHero.alt}
+              width={2752}
+              height={1536}
+              priority
+              quality={100}
+              sizes="(max-width: 1400px) 100vw, 1400px"
+              className="block w-full h-auto max-h-[78vh] object-contain mx-auto scale-[1.01]"
+            />
+
+            {/* Light Sweep Highlight Overlay */}
+            <div
+              ref={lightSweepRef}
+              className="absolute inset-0 pointer-events-none z-10"
+              style={{
+                background: `linear-gradient(110deg, transparent 20%, rgba(255, 255, 255, 0.12) 43%, rgba(80, 145, 255, 0.12) 50%, transparent 70%)`,
+                width: "100%",
+                height: "100%",
+              }}
+            />
+          </div>
+        </div>
+
+        {/* CTAs & Badges row positioned underneath */}
+        <div className="relative w-full max-w-[1400px] z-20 mt-5 px-6">
+          <Container className="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div ref={pillsRef} className="flex gap-3">
+              <span className="bg-blue text-white px-3.5 py-1.5 rounded-full text-[10px] font-heading font-bold uppercase tracking-widest border border-blue-light/20 shadow-soft">
+                BRAND COLLABORATIONS
+              </span>
+              <span className="bg-white/10 backdrop-blur-md text-white px-3.5 py-1.5 rounded-full text-[10px] font-heading font-bold uppercase tracking-widest border border-white/20 shadow-xs">
+                Creator Partnerships
+              </span>
+            </div>
+
+            <div ref={ctasRef} className="flex gap-3 w-full sm:w-auto">
+              <ArrowPillButton href="/contact" size="md" className="flex-1 sm:flex-initial">
+                Share Campaign Brief
               </ArrowPillButton>
               <Button
                 href="/analytics"
-                className="bg-transparent border-border text-ink hover:bg-surface-soft"
+                className="bg-white/10 hover:bg-white/20 border-white/20 text-white flex-1 sm:flex-initial"
                 size="md"
               >
                 View Audience Insights
               </Button>
             </div>
-          </div>
+          </Container>
+        </div>
+      </section>
 
-          {/* Intrinsic Landscape image rendering */}
-          <div className="w-full max-w-[1280px] aspect-[2752/1536] relative rounded-panel overflow-hidden border border-border bg-white shadow-soft mt-12">
-            <Image
-              src={imageManifest.collaborateHero.src}
-              alt={imageManifest.collaborateHero.alt}
-              fill
-              priority
-              sizes="(max-width: 1280px) 100vw, 1280px"
-              className="object-cover"
-            />
-          </div>
-        </Container>
-      </WhiteAtmosphereSection>
+      {/* Transition to white section */}
+      <div className="relative h-10 bg-white rounded-t-[32px] z-30 border-t border-border" />
 
       {/* 2. SERVICES SECTION (Desktop index hover / Mobile snapping carousel) */}
       <WhiteAtmosphereSection id="services" halo="right" className="bg-white">

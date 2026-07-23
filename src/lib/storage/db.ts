@@ -2,140 +2,162 @@ import fs from "fs";
 import path from "path";
 import { Redis } from "@upstash/redis";
 
-// Core Sources
+export * from "./reportShared";
+import type {
+  AnalyticsReport,
+  ChannelSlug,
+  ReportStatus,
+  ReportWindow,
+} from "./reportShared";
+
+// Core Creator Channels Configuration
+export const creatorChannels = [
+  {
+    slug: "instagram-fitness" as const,
+    platform: "instagram" as const,
+    displayName: "Instagram Fitness",
+    handle: "@meetsofficial",
+    audienceLabel: "Followers",
+  },
+  {
+    slug: "instagram-finance" as const,
+    platform: "instagram" as const,
+    displayName: "Instagram Finance",
+    handle: "@meet.fitfix",
+    audienceLabel: "Followers",
+  },
+  {
+    slug: "youtube-main" as const,
+    platform: "youtube" as const,
+    displayName: "YouTube Main",
+    handle: "Meet Shah",
+    audienceLabel: "Subscribers",
+  },
+];
+
+/** Legacy alias kept for the chatbot route + platform profile helpers. */
 export type AnalyticsSource = "instagram_fitness" | "instagram_finance" | "youtube_main";
 
-// Platform Metrics Profile CMS (§13)
-export type PlatformProfile = {
-  id: "instagram_fitness" | "instagram_finance" | "youtube_main";
+/**
+ * Map channel slug ↔ legacy persona used by the chatbot + platform profile
+ * records. Old snake_case ids stay in profiles/history/audit; new AnalyticsReport
+ * records use the kebab-case slug.
+ */
+export function channelSlugToPersona(slug: ChannelSlug): AnalyticsSource {
+  if (slug === "instagram-fitness") return "instagram_fitness";
+  if (slug === "instagram-finance") return "instagram_finance";
+  return "youtube_main";
+}
+
+// Persistent Channel Model
+export type CreatorChannel = {
+  id: string;
+  slug: ChannelSlug;
   platform: "instagram" | "youtube";
   displayName: string;
-  handle: string | null;
-  url: string | null;
+  handle: string;
+  profileUrl?: string;
+  url?: string | null;
+
+  currentAudienceCount: number;
+
+  manualOverrideEnabled: boolean;
+  manualAudienceCount?: number | null;
+
+  lastApiAudienceCount?: number | null;
+  lastSyncedAt?: string | null;
+
+  isPublished: boolean;
+
+  createdAt: string;
+  updatedAt: string;
+};
+
+// Platform Profile CMS Schema (Compatible Alias)
+export type PlatformProfile = CreatorChannel & {
   primaryMetric: "followers" | "subscribers";
   currentValue: number;
-  previousValue: number | null;
+  manualAudienceOverride?: number | null;
+  previousValue?: number | null;
   effectiveAt: string;
-  updatedAt: string;
   updatedBy: string;
   published: boolean;
 };
 
-// Platform Profile Snapshots History (§13)
+// Audience Metric History
+export type AudienceMetricHistory = {
+  id: string;
+  channelId: string;
+
+  previousValue?: number;
+  newValue: number;
+
+  source: "manual-admin" | "screenshot-report" | "instagram-api" | "youtube-api";
+
+  effectiveDate: string;
+  changedByAdminId?: string;
+
+  createdAt: string;
+};
+
+// Platform Profile Snapshots History
 export type PlatformMetricSnapshot = {
   id: string;
-  profileId: PlatformProfile["id"];
+  profileId: string;
+  channelId?: string;
   metric: "followers" | "subscribers";
   value: number;
   effectiveAt: string;
   createdAt: string;
-  source: "manual-admin-update" | "published-report";
+  source: "manual-admin" | "published-report" | "screenshot-ai" | "instagram-api" | "youtube-api";
   sourceReportId: string | null;
+  isReviewed?: boolean;
+  isPublished?: boolean;
 };
 
-// Analytics Report Schemas (§20, §21)
-export type AnalyticsReport = {
+// Admin Audit Log
+export type AdminAuditLog = {
   id: string;
-  schemaVersion: number;
-  persona: AnalyticsSource;
-  period: {
-    type: "30d" | "90d" | "custom";
-    startDate: string;
-    endDate: string;
-    label: string;
-    days: number;
-  };
-  source: {
-    type: "instagram-insights-screenshots";
-    screenshotCount: number;
-    uploadedAt: string;
-    screenshotUrls?: string[]; // Vercel Blob signed private URLs (§17)
-  };
-  metrics: {
-    // Instagram specific
-    followers?: number | null;
-    followerChange?: number | null;
-    reach?: number | null;
-    impressions?: number | null;
-    profileVisits?: number | null;
-    accountsEngaged?: number | null;
-    contentInteractions?: number | null;
-    reelPlays?: number | null;
-    likes?: number | null;
-    comments?: number | null;
-    shares?: number | null;
-    saves?: number | null;
-    engagementRate?: number | null;
-    storyViews?: number | null;
-
-    // YouTube specific
-    subscribers?: number | null;
-    subscriberChange?: number | null;
-    views?: number | null;
-    uniqueViewers?: number | null;
-    watchTimeHours?: number | null;
-    averageViewDurationSeconds?: number | null;
-    impressionsClickThroughRate?: number | null;
-    returningViewers?: number | null;
-    newViewers?: number | null;
-  };
-  demographics: {
-    gender: {
-      male: number | null;
-      female: number | null;
-      otherOrUnspecified: number | null;
-    };
-    ageRanges: Array<{
-      label: string;
-      percentage: number;
-    }>;
-    topCities: Array<{
-      name: string;
-      percentage: number | null;
-    }>;
-    topStates?: Array<{
-      name: string;
-      percentage: number | null;
-    }>;
-    topCountries: Array<{
-      name: string;
-      percentage: number | null;
-    }>;
-  };
-  series: Array<{
-    metric: "followers" | "subscribers" | "reach" | "impressions" | "views" | "interactions";
-    points: Array<{
-      date: string | null;
-      label: string;
-      value: number;
-    }>;
-  }>;
-  topContent: Array<{
-    id: string;
-    title: string;
-    mediaType: "reel" | "post" | "story" | "video" | "unknown";
-    url: string | null;
-    thumbnail: string | null;
-    views: number | null;
-    reach: number | null;
-    likes: number | null;
-    comments: number | null;
-    shares: number | null;
-    saves: number | null;
-  }>;
-  extraction: {
-    confidence: "high" | "medium" | "low";
-    warnings: string[];
-    unreadableFields: string[];
-  };
-  creatorNotes: string;
-  status: "draft" | "published";
+  adminId: string;
+  action: string;
+  entityType: string;
+  entityId?: string;
+  previousValue?: unknown;
+  newValue?: unknown;
   createdAt: string;
-  updatedAt: string;
-  publishedAt: string | null;
 };
 
-// Initialize Upstash client if keys are present
+// Effective Audience Count Resolution
+export function getEffectiveAudienceCount(channel: PlatformProfile | CreatorChannel): number {
+  if (channel.manualOverrideEnabled && channel.manualAudienceCount != null && channel.manualAudienceCount > 0) {
+    return channel.manualAudienceCount;
+  }
+  if ((channel as PlatformProfile).manualAudienceOverride != null && (channel as PlatformProfile).manualAudienceOverride! > 0) {
+    return (channel as PlatformProfile).manualAudienceOverride!;
+  }
+  if (channel.lastApiAudienceCount != null && channel.lastApiAudienceCount > 0) {
+    return channel.lastApiAudienceCount;
+  }
+  if (channel.currentAudienceCount != null && channel.currentAudienceCount > 0) {
+    return channel.currentAudienceCount;
+  }
+  return 0;
+}
+
+// Compact Count Formatter
+export function formatCompactCount(value: number): string {
+  if (value === 0) return "0";
+  return new Intl.NumberFormat("en", {
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(value);
+}
+
+export const formatAudienceCount = (value: number, format: "exact" | "compact" = "compact") => {
+  return format === "exact" ? value.toLocaleString() : formatCompactCount(value);
+};
+
+// Redis / Persistent Storage Config
 const isRedisConfigured =
   typeof process !== "undefined" &&
   process.env.UPSTASH_REDIS_REST_URL &&
@@ -150,366 +172,85 @@ const redis = isRedisConfigured
 
 const REPORTS_PATH = path.join(process.cwd(), "data", "reports.json");
 const PROFILES_PATH = path.join(process.cwd(), "data", "profiles.json");
-const SNAPSHOTS_PATH = path.join(process.cwd(), "data", "snapshots.json");
+const HISTORY_PATH = path.join(process.cwd(), "data", "history.json");
+const AUDIT_PATH = path.join(process.cwd(), "data", "audit.json");
 
-// Seeds
+function makeSeedProfile(
+  id: string,
+  slug: PlatformProfile["slug"],
+  platform: PlatformProfile["platform"],
+  displayName: string,
+  handle: string,
+  url: string,
+  primaryMetric: PlatformProfile["primaryMetric"],
+): PlatformProfile {
+  const now = new Date().toISOString();
+  return {
+    id,
+    slug,
+    platform,
+    displayName,
+    handle,
+    url,
+    primaryMetric,
+    currentValue: 0,
+    currentAudienceCount: 0,
+    manualOverrideEnabled: false,
+    manualAudienceCount: null,
+    manualAudienceOverride: null,
+    lastApiAudienceCount: null,
+    previousValue: null,
+    effectiveAt: now,
+    updatedAt: now,
+    updatedBy: "system-seed",
+    published: false,
+    isPublished: false,
+    createdAt: now,
+  };
+}
+
 const SEED_PROFILES: PlatformProfile[] = [
-  {
-    id: "instagram_fitness",
-    platform: "instagram",
-    displayName: "Instagram Fitness",
-    handle: "@meetsofficial",
-    url: "https://www.instagram.com/meetsofficial/",
-    primaryMetric: "followers",
-    currentValue: 11900,
-    previousValue: null,
-    effectiveAt: "2026-07-01T00:00:00Z",
-    updatedAt: "2026-07-01T00:00:00Z",
-    updatedBy: "system-seed",
-    published: true,
-  },
-  {
-    id: "instagram_finance",
-    platform: "instagram",
-    displayName: "Instagram Finance",
-    handle: "@meet.fitfix",
-    url: "https://www.instagram.com/meet.fitfix/",
-    primaryMetric: "followers",
-    currentValue: 15100,
-    previousValue: null,
-    effectiveAt: "2026-07-01T00:00:00Z",
-    updatedAt: "2026-07-01T00:00:00Z",
-    updatedBy: "system-seed",
-    published: true,
-  },
-  {
-    id: "youtube_main",
-    platform: "youtube",
-    displayName: "YouTube Main",
-    handle: "YouTube",
-    url: null, // Hidden until real URL added (§13)
-    primaryMetric: "subscribers",
-    currentValue: 19700,
-    previousValue: null,
-    effectiveAt: "2026-07-01T00:00:00Z",
-    updatedAt: "2026-07-01T00:00:00Z",
-    updatedBy: "system-seed",
-    published: true,
-  },
+  makeSeedProfile(
+    "instagram_fitness",
+    "instagram-fitness",
+    "instagram",
+    "Instagram Fitness",
+    "@meetsofficial",
+    "https://www.instagram.com/meetsofficial/",
+    "followers",
+  ),
+  makeSeedProfile(
+    "instagram_finance",
+    "instagram-finance",
+    "instagram",
+    "Instagram Finance",
+    "@meet.fitfix",
+    "https://www.instagram.com/meet.fitfix/",
+    "followers",
+  ),
+  makeSeedProfile(
+    "youtube_main",
+    "youtube-main",
+    "youtube",
+    "YouTube Main",
+    "Meet Shah",
+    "https://www.youtube.com/@meetshah",
+    "subscribers",
+  ),
 ];
 
-const SEED_SNAPSHOTS: PlatformMetricSnapshot[] = [
-  {
-    id: "snap-fitness-seed",
-    profileId: "instagram_fitness",
-    metric: "followers",
-    value: 11900,
-    effectiveAt: "2026-07-01T00:00:00Z",
-    createdAt: "2026-07-01T00:00:00Z",
-    source: "manual-admin-update",
-    sourceReportId: null,
-  },
-  {
-    id: "snap-finance-seed",
-    profileId: "instagram_finance",
-    metric: "followers",
-    value: 15100,
-    effectiveAt: "2026-07-01T00:00:00Z",
-    createdAt: "2026-07-01T00:00:00Z",
-    source: "manual-admin-update",
-    sourceReportId: null,
-  },
-  {
-    id: "snap-youtube-seed",
-    profileId: "youtube_main",
-    metric: "subscribers",
-    value: 19700,
-    effectiveAt: "2026-07-01T00:00:00Z",
-    createdAt: "2026-07-01T00:00:00Z",
-    source: "manual-admin-update",
-    sourceReportId: null,
-  },
-];
+const isProductionWithoutRedis =
+  process.env.NODE_ENV === "production" && !isRedisConfigured;
 
-const SEED_REPORTS: AnalyticsReport[] = [
-  {
-    id: "fitness-q2-2026",
-    schemaVersion: 1,
-    persona: "instagram_fitness",
-    period: {
-      type: "30d",
-      startDate: "2026-06-01",
-      endDate: "2026-06-30",
-      label: "June 2026",
-      days: 30,
-    },
-    source: {
-      type: "instagram-insights-screenshots",
-      screenshotCount: 4,
-      uploadedAt: "2026-07-01T12:00:00Z",
-    },
-    metrics: {
-      followers: 11900,
-      followerChange: 450,
-      reach: 24500,
-      impressions: 48000,
-      profileVisits: 1200,
-      accountsEngaged: 1800,
-      contentInteractions: 3100,
-      reelPlays: 18500,
-      likes: 1200,
-      comments: 210,
-      shares: 680,
-      saves: 1010,
-      engagementRate: 3.2,
-    },
-    demographics: {
-      gender: {
-        male: 72,
-        female: 25,
-        otherOrUnspecified: 3,
-      },
-      ageRanges: [
-        { label: "18-24", percentage: 38 },
-        { label: "25-34", percentage: 46 },
-        { label: "35-44", percentage: 11 },
-        { label: "45+", percentage: 5 },
-      ],
-      topCities: [
-        { name: "Ahmedabad", percentage: 28 },
-        { name: "Mumbai", percentage: 22 },
-        { name: "Delhi NCR", percentage: 16 },
-        { name: "Bangalore", percentage: 12 },
-      ],
-      topCountries: [
-        { name: "India", percentage: 94 },
-        { name: "United States", percentage: 3 },
-        { name: "Others", percentage: 3 },
-      ],
-    },
-    series: [
-      {
-        metric: "reach",
-        points: [
-          { date: "2026-06-05", label: "Jun 05", value: 4500 },
-          { date: "2026-06-12", label: "Jun 12", value: 6800 },
-          { date: "2026-06-19", label: "Jun 19", value: 7200 },
-          { date: "2026-06-26", label: "Jun 26", value: 6000 },
-        ],
-      },
-    ],
-    topContent: [
-      {
-        id: "reel-squat-form",
-        title: "Technique Fix: The Proper Squat Depth",
-        mediaType: "reel",
-        url: "https://www.instagram.com/p/squatform",
-        thumbnail: null,
-        views: 8500,
-        reach: 7200,
-        likes: 620,
-        comments: 88,
-        shares: 240,
-        saves: 410,
-      },
-    ],
-    extraction: {
-      confidence: "high",
-      warnings: [],
-      unreadableFields: [],
-    },
-    creatorNotes: "Steady organic growth driven by the Squat Depth Technique breakdown reel.",
-    status: "published",
-    createdAt: "2026-07-01T12:00:00Z",
-    updatedAt: "2026-07-01T12:00:00Z",
-    publishedAt: "2026-07-01T12:00:00Z",
-  },
-  {
-    id: "finance-q2-2026",
-    schemaVersion: 1,
-    persona: "instagram_finance",
-    period: {
-      type: "30d",
-      startDate: "2026-06-01",
-      endDate: "2026-06-30",
-      label: "June 2026",
-      days: 30,
-    },
-    source: {
-      type: "instagram-insights-screenshots",
-      screenshotCount: 4,
-      uploadedAt: "2026-07-01T12:30:00Z",
-    },
-    metrics: {
-      followers: 15100,
-      followerChange: 680,
-      reach: 32000,
-      impressions: 61000,
-      profileVisits: 1900,
-      accountsEngaged: 2500,
-      contentInteractions: 4200,
-      reelPlays: 24000,
-      likes: 1800,
-      comments: 320,
-      shares: 910,
-      saves: 1170,
-      engagementRate: 2.9,
-    },
-    demographics: {
-      gender: {
-        male: 68,
-        female: 28,
-        otherOrUnspecified: 4,
-      },
-      ageRanges: [
-        { label: "18-24", percentage: 34 },
-        { label: "25-34", percentage: 48 },
-        { label: "35-44", percentage: 13 },
-        { label: "45+", percentage: 5 },
-      ],
-      topCities: [
-        { name: "Mumbai", percentage: 26 },
-        { name: "Ahmedabad", percentage: 20 },
-        { name: "Delhi NCR", percentage: 19 },
-        { name: "Bangalore", percentage: 15 },
-      ],
-      topCountries: [
-        { name: "India", percentage: 91 },
-        { name: "United Arab Emirates", percentage: 4 },
-        { name: "Others", percentage: 5 },
-      ],
-    },
-    series: [
-      {
-        metric: "reach",
-        points: [
-          { date: "2026-06-05", label: "Jun 05", value: 6100 },
-          { date: "2026-06-12", label: "Jun 12", value: 8900 },
-          { date: "2026-06-19", label: "Jun 19", value: 9200 },
-          { date: "2026-06-26", label: "Jun 26", value: 7800 },
-        ],
-      },
-    ],
-    topContent: [
-      {
-        id: "reel-mutual-funds",
-        title: "Mutual Funds vs Stocks for Beginners",
-        mediaType: "reel",
-        url: "https://www.instagram.com/p/mutualfunds",
-        thumbnail: null,
-        views: 12000,
-        reach: 9800,
-        likes: 920,
-        comments: 145,
-        shares: 380,
-        saves: 520,
-      },
-    ],
-    extraction: {
-      confidence: "high",
-      warnings: [],
-      unreadableFields: [],
-    },
-    creatorNotes: "Strong audience saves on the Mutual Funds explanation reel.",
-    status: "published",
-    createdAt: "2026-07-01T12:30:00Z",
-    updatedAt: "2026-07-01T12:30:00Z",
-    publishedAt: "2026-07-01T12:30:00Z",
-  },
-  {
-    id: "youtube-q2-2026",
-    schemaVersion: 1,
-    persona: "youtube_main",
-    period: {
-      type: "30d",
-      startDate: "2026-06-01",
-      endDate: "2026-06-30",
-      label: "June 2026",
-      days: 30,
-    },
-    source: {
-      type: "instagram-insights-screenshots",
-      screenshotCount: 3,
-      uploadedAt: "2026-07-01T12:45:00Z",
-    },
-    metrics: {
-      subscribers: 19700,
-      subscriberChange: 840,
-      views: 45000,
-      uniqueViewers: 32000,
-      watchTimeHours: 1200,
-      averageViewDurationSeconds: 96,
-      impressionsClickThroughRate: 4.8,
-      returningViewers: 14000,
-      newViewers: 18000,
-      likes: 3100,
-      comments: 450,
-      shares: 1200,
-    },
-    demographics: {
-      gender: {
-        male: 75,
-        female: 22,
-        otherOrUnspecified: 3,
-      },
-      ageRanges: [
-        { label: "18-24", percentage: 40 },
-        { label: "25-34", percentage: 45 },
-        { label: "35-44", percentage: 10 },
-        { label: "45+", percentage: 5 },
-      ],
-      topCities: [
-        { name: "Mumbai", percentage: 28 },
-        { name: "Ahmedabad", percentage: 22 },
-        { name: "Delhi NCR", percentage: 17 },
-        { name: "Bangalore", percentage: 14 },
-      ],
-      topCountries: [
-        { name: "India", percentage: 93 },
-        { name: "United States", percentage: 4 },
-        { name: "Others", percentage: 3 },
-      ],
-    },
-    series: [
-      {
-        metric: "views",
-        points: [
-          { date: "2026-06-05", label: "Jun 05", value: 8500 },
-          { date: "2026-06-12", label: "Jun 12", value: 11000 },
-          { date: "2026-06-19", label: "Jun 19", value: 14200 },
-          { date: "2026-06-26", label: "Jun 26", value: 11300 },
-        ],
-      },
-    ],
-    topContent: [
-      {
-        id: "video-beginner-wealth",
-        title: "How I Built My First Portfolio at 20",
-        mediaType: "video",
-        url: "https://www.youtube.com/watch?v=wealth20",
-        thumbnail: null,
-        views: 18000,
-        reach: null,
-        likes: 1200,
-        comments: 185,
-        shares: 450,
-        saves: null,
-      },
-    ],
-    extraction: {
-      confidence: "high",
-      warnings: [],
-      unreadableFields: [],
-    },
-    creatorNotes: "Strong viewership growth on the portfolio builder guide.",
-    status: "published",
-    createdAt: "2026-07-01T12:45:00Z",
-    updatedAt: "2026-07-01T12:45:00Z",
-    publishedAt: "2026-07-01T12:45:00Z",
-  },
-];
+export class StorageNotConfiguredError extends Error {
+  constructor() {
+    super(
+      "Persistent storage is not configured. Connect Upstash Redis (UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN) — production cannot write to the local filesystem.",
+    );
+    this.name = "StorageNotConfiguredError";
+  }
+}
 
-// Helper to load files
 function readJSONFile<T>(filePath: string, seed: T): T {
   try {
     const parentDir = path.dirname(filePath);
@@ -517,46 +258,45 @@ function readJSONFile<T>(filePath: string, seed: T): T {
       fs.mkdirSync(parentDir, { recursive: true });
     }
     if (!fs.existsSync(filePath)) {
-      fs.writeFileSync(filePath, JSON.stringify(seed, null, 2));
+      if (!isProductionWithoutRedis) {
+        fs.writeFileSync(filePath, JSON.stringify(seed, null, 2));
+      }
       return seed;
     }
     const data = fs.readFileSync(filePath, "utf-8");
     return JSON.parse(data) as T;
-  } catch (err) {
+  } catch {
     return seed;
   }
 }
 
 function writeJSONFile<T>(filePath: string, data: T) {
-  try {
-    const parentDir = path.dirname(filePath);
-    if (!fs.existsSync(parentDir)) {
-      fs.mkdirSync(parentDir, { recursive: true });
-    }
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
-  } catch (err) {
-    console.error(`Write failed to ${filePath}`, err);
+  if (isProductionWithoutRedis) {
+    throw new StorageNotConfiguredError();
   }
+  const parentDir = path.dirname(filePath);
+  if (!fs.existsSync(parentDir)) {
+    fs.mkdirSync(parentDir, { recursive: true });
+  }
+  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
 }
 
 // 1. Platform Profiles CRUD
 export async function getPlatformProfile(
-  id: PlatformProfile["id"]
+  id: string
 ): Promise<PlatformProfile | null> {
-  if (redis) {
-    return await redis.get<PlatformProfile>(`platform-profile:${id}`);
-  }
-  const list = readJSONFile(PROFILES_PATH, SEED_PROFILES);
-  return list.find((p) => p.id === id) || null;
+  const list = await listPlatformProfiles();
+  return list.find((p) => p.id === id || p.slug === id) || null;
 }
 
 export async function savePlatformProfile(profile: PlatformProfile): Promise<void> {
+  const normalizedId = profile.id || profile.slug;
   if (redis) {
-    await redis.set(`platform-profile:${profile.id}`, profile);
+    await redis.set(`platform-profile:${normalizedId}`, profile);
     return;
   }
   const list = readJSONFile(PROFILES_PATH, SEED_PROFILES);
-  const idx = list.findIndex((p) => p.id === profile.id);
+  const idx = list.findIndex((p) => p.id === normalizedId || p.slug === normalizedId || p.id === profile.id);
   if (idx >= 0) {
     list[idx] = profile;
   } else {
@@ -565,71 +305,105 @@ export async function savePlatformProfile(profile: PlatformProfile): Promise<voi
   writeJSONFile(PROFILES_PATH, list);
 }
 
+function getCanonicalId(p: PlatformProfile): string {
+  if (p.id === "instagram-fitness" || p.id === "instagram_fitness" || p.slug === "instagram-fitness") return "instagram_fitness";
+  if (p.id === "instagram-finance" || p.id === "instagram_finance" || p.slug === "instagram-finance") return "instagram_finance";
+  if (p.id === "youtube-main" || p.id === "youtube_main" || p.slug === "youtube-main") return "youtube_main";
+  return p.id || p.slug || "unknown";
+}
+
 export async function listPlatformProfiles(): Promise<PlatformProfile[]> {
+  let rawList: PlatformProfile[] = [];
   if (redis) {
     const keys = await redis.keys("platform-profile:*");
-    const list: PlatformProfile[] = [];
     for (const k of keys) {
       const p = await redis.get<PlatformProfile>(k);
-      if (p) list.push(p);
+      if (p) rawList.push(p);
     }
-    return list;
   }
-  return readJSONFile(PROFILES_PATH, SEED_PROFILES);
+  if (rawList.length < 3) {
+    rawList = readJSONFile(PROFILES_PATH, SEED_PROFILES);
+  }
+
+  const map = new Map<string, PlatformProfile>();
+  for (const p of rawList) {
+    const cid = getCanonicalId(p);
+    if (!map.has(cid) || (p.updatedAt && map.get(cid)!.updatedAt < p.updatedAt)) {
+      map.set(cid, p);
+    }
+  }
+
+  for (const seed of SEED_PROFILES) {
+    const cid = getCanonicalId(seed);
+    if (!map.has(cid)) {
+      map.set(cid, seed);
+    }
+  }
+
+  return Array.from(map.values());
 }
 
-// 2. Metric Snapshot history
-export async function getPlatformMetricHistory(
-  profileId: PlatformProfile["id"]
-): Promise<PlatformMetricSnapshot[]> {
-  if (redis) {
-    const keys = await redis.keys(`platform-history:${profileId}:*`);
-    const list: PlatformMetricSnapshot[] = [];
-    for (const k of keys) {
-      const s = await redis.get<PlatformMetricSnapshot>(k);
-      if (s) list.push(s);
-    }
-    return list.sort(
-      (a, b) => new Date(b.effectiveAt).getTime() - new Date(a.effectiveAt).getTime()
-    );
-  }
-  const list = readJSONFile(SNAPSHOTS_PATH, SEED_SNAPSHOTS);
-  return list
-    .filter((s) => s.profileId === profileId)
-    .sort((a, b) => new Date(b.effectiveAt).getTime() - new Date(a.effectiveAt).getTime());
-}
-
-export async function savePlatformMetricSnapshot(
-  snapshot: PlatformMetricSnapshot
+// 2. Audience Metric History CRUD
+export async function saveAudienceMetricHistory(
+  history: AudienceMetricHistory
 ): Promise<void> {
   if (redis) {
-    await redis.set(`platform-history:${snapshot.profileId}:${snapshot.id}`, snapshot);
+    await redis.set(`audience-history:${history.channelId}:${history.id}`, history);
     return;
   }
-  const list = readJSONFile(SNAPSHOTS_PATH, SEED_SNAPSHOTS);
-  list.push(snapshot);
-  writeJSONFile(SNAPSHOTS_PATH, list);
+  const list = readJSONFile<AudienceMetricHistory[]>(HISTORY_PATH, []);
+  list.push(history);
+  writeJSONFile(HISTORY_PATH, list);
+}
+
+export async function getAudienceMetricHistory(
+  channelId: string
+): Promise<AudienceMetricHistory[]> {
+  if (redis) {
+    const keys = await redis.keys(`audience-history:${channelId}:*`);
+    const list: AudienceMetricHistory[] = [];
+    for (const k of keys) {
+      const h = await redis.get<AudienceMetricHistory>(k);
+      if (h) list.push(h);
+    }
+    return list.sort((a, b) => new Date(b.effectiveDate).getTime() - new Date(a.effectiveDate).getTime());
+  }
+  const list = readJSONFile<AudienceMetricHistory[]>(HISTORY_PATH, []);
+  return list
+    .filter((h) => h.channelId === channelId)
+    .sort((a, b) => new Date(b.effectiveDate).getTime() - new Date(a.effectiveDate).getTime());
 }
 
 // 3. Analytics Report CRUD
+
+const REPORT_KEY = (id: string) => `analytics-report:${id}`;
+
+function isPublished(r: AnalyticsReport): boolean {
+  return r.status === "published" && !!r.publishedAt;
+}
+
+/** publishedAt DESC, then createdAt DESC — matches spec §16. */
+function comparePublishedAtDesc(a: AnalyticsReport, b: AnalyticsReport): number {
+  const ap = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+  const bp = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+  if (ap !== bp) return bp - ap;
+  return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+}
+
 export async function getReport(id: string): Promise<AnalyticsReport | null> {
   if (redis) {
-    return await redis.get<AnalyticsReport>(`analytics-report:${id}`);
+    return await redis.get<AnalyticsReport>(REPORT_KEY(id));
   }
-  const list = readJSONFile(REPORTS_PATH, SEED_REPORTS);
-  return list.find((r) => r.id === id) || null;
+  const list = readJSONFile<AnalyticsReport[]>(REPORTS_PATH, []);
+  return list.find((r) => r.id === id || r.slug === id) || null;
 }
 
 export async function saveReport(report: AnalyticsReport): Promise<void> {
   if (redis) {
-    await redis.set(`analytics-report:${report.id}`, report);
-    if (report.status === "published") {
-      await redis.lpush(`analytics-index:${report.persona}`, report.id);
-      await redis.set(`analytics-latest:${report.persona}`, report);
-    }
+    await redis.set(REPORT_KEY(report.id), report);
     return;
   }
-  const list = readJSONFile(REPORTS_PATH, SEED_REPORTS);
+  const list = readJSONFile<AnalyticsReport[]>(REPORTS_PATH, []);
   const idx = list.findIndex((r) => r.id === report.id);
   if (idx >= 0) {
     list[idx] = report;
@@ -639,34 +413,80 @@ export async function saveReport(report: AnalyticsReport): Promise<void> {
   writeJSONFile(REPORTS_PATH, list);
 }
 
-export async function listReports(source?: AnalyticsSource): Promise<AnalyticsReport[]> {
+export async function deleteReport(id: string): Promise<void> {
+  if (redis) {
+    await redis.del(REPORT_KEY(id));
+    return;
+  }
+  const list = readJSONFile<AnalyticsReport[]>(REPORTS_PATH, []);
+  writeJSONFile(REPORTS_PATH, list.filter((r) => r.id !== id));
+}
+
+export type ListReportsOptions = {
+  channel?: ChannelSlug;
+  reportWindow?: ReportWindow;
+  status?: ReportStatus | "all";
+  publishedOnly?: boolean;
+};
+
+async function loadAllReports(): Promise<AnalyticsReport[]> {
   if (redis) {
     const keys = await redis.keys("analytics-report:*");
-    const reports: AnalyticsReport[] = [];
+    const list: AnalyticsReport[] = [];
     for (const key of keys) {
       const r = await redis.get<AnalyticsReport>(key);
-      if (r) {
-        if (!source || r.persona === source) {
-          reports.push(r);
-        }
-      }
+      if (r) list.push(r);
     }
-    return reports.sort(
-      (a, b) => new Date(b.period.endDate).getTime() - new Date(a.period.endDate).getTime()
-    );
+    return list;
   }
-  const list = readJSONFile(REPORTS_PATH, SEED_REPORTS);
-  const filtered = source ? list.filter((r) => r.persona === source) : list;
-  return filtered.sort(
-    (a, b) => new Date(b.period.endDate).getTime() - new Date(a.period.endDate).getTime()
+  return readJSONFile<AnalyticsReport[]>(REPORTS_PATH, []);
+}
+
+export async function listReports(
+  options: ListReportsOptions = {},
+): Promise<AnalyticsReport[]> {
+  const all = await loadAllReports();
+  const filtered = all.filter((r) => {
+    if (options.channel && r.channel !== options.channel) return false;
+    if (options.reportWindow && r.reportWindow !== options.reportWindow) return false;
+    if (options.publishedOnly && !isPublished(r)) return false;
+    if (options.status && options.status !== "all" && r.status !== options.status)
+      return false;
+    return true;
+  });
+  return filtered.sort(comparePublishedAtDesc);
+}
+
+export async function getLatestPublishedReport(
+  channel?: ChannelSlug,
+): Promise<AnalyticsReport | null> {
+  const list = await listReports({ channel, publishedOnly: true });
+  return list[0] ?? null;
+}
+
+// 4. Admin Audit Log
+export async function logAdminAction(log: AdminAuditLog): Promise<void> {
+  if (redis) {
+    await redis.set(`admin-audit:${log.id}`, log);
+    return;
+  }
+  const list = readJSONFile<AdminAuditLog[]>(AUDIT_PATH, []);
+  list.push(log);
+  writeJSONFile(AUDIT_PATH, list);
+}
+
+export async function listAdminAuditLogs(): Promise<AdminAuditLog[]> {
+  if (redis) {
+    const keys = await redis.keys("admin-audit:*");
+    const logs: AdminAuditLog[] = [];
+    for (const k of keys) {
+      const log = await redis.get<AdminAuditLog>(k);
+      if (log) logs.push(log);
+    }
+    return logs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+  return readJSONFile<AdminAuditLog[]>(AUDIT_PATH, []).sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 }
 
-export async function getLatestReport(source: AnalyticsSource): Promise<AnalyticsReport | null> {
-  if (redis) {
-    return await redis.get<AnalyticsReport>(`analytics-latest:${source}`);
-  }
-  const list = await listReports(source);
-  const published = list.filter((r) => r.status === "published");
-  return published[0] || null;
-}

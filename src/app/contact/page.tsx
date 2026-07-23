@@ -34,7 +34,7 @@ export default function ContactPage() {
       <div className="absolute size-96 rounded-full bg-[#2e7bff]/10 blur-3xl -top-20 -left-20 -z-10" />
       <div className="absolute size-96 rounded-full bg-[#1e5fe0]/5 blur-3xl bottom-10 right-10 -z-10" />
 
-      <Section tone="default" spacing="default" className="pt-28 lg:pt-36 pb-16 bg-transparent">
+      <Section tone="default" spacing="default" className="pt-8 sm:pt-10 lg:pt-12 pb-12 lg:pb-16 bg-transparent">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
           {/* Left panel: Info & links */}
           <div className="lg:col-span-5 text-left flex flex-col items-start space-y-6">

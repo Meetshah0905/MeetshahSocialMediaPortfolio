@@ -4,11 +4,11 @@ import { useEffect, useRef } from "react";
 import Lenis from "lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { usePathname } from "next/navigation";
+
+export let globalLenis: Lenis | null = null;
 
 export function SmoothScrollProvider({ children }: { children: React.ReactNode }) {
   const lenisRef = useRef<Lenis | null>(null);
-  const pathname = usePathname();
 
   useEffect(() => {
     // Disable smooth scroll for users who prefer reduced motion
@@ -18,14 +18,18 @@ export function SmoothScrollProvider({ children }: { children: React.ReactNode }
     gsap.registerPlugin(ScrollTrigger);
 
     const lenis = new Lenis({
-      lerp: 0.075,
+      // 0.075/0.82 felt laggy: heavy smoothing + undersized wheel steps means
+      // the page visibly trails the input. 0.11/1 keeps the premium glide but
+      // tracks the wheel closely enough to feel immediate.
+      lerp: 0.11,
       smoothWheel: true,
-      wheelMultiplier: 0.82,
+      wheelMultiplier: 1,
       touchMultiplier: 1,
       syncTouch: false,
     });
 
     lenisRef.current = lenis;
+    globalLenis = lenis;
 
     // Connect Lenis to ScrollTrigger
     lenis.on("scroll", ScrollTrigger.update);
@@ -42,13 +46,9 @@ export function SmoothScrollProvider({ children }: { children: React.ReactNode }
       gsap.ticker.remove(update);
       lenis.destroy();
       lenisRef.current = null;
+      globalLenis = null;
     };
   }, []);
-
-  // Refresh ScrollTrigger when path changes
-  useEffect(() => {
-    ScrollTrigger.refresh();
-  }, [pathname]);
 
   return <>{children}</>;
 }

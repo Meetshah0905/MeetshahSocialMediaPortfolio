@@ -1,84 +1,125 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath, revalidateTag } from "next/cache";
+import {
+  getPlatformProfile,
+  savePlatformProfile,
+  saveAudienceMetricHistory,
+  logAdminAction,
+  formatCompactCount,
+} from "@/lib/storage/db";
 import { isAuthenticated } from "@/lib/auth/session";
-import { getPlatformProfile, savePlatformProfile, savePlatformMetricSnapshot, PlatformProfile, PlatformMetricSnapshot } from "@/lib/storage/db";
 
-type Params = {
-  params: Promise<{
-    profileId: string;
-  }>;
-};
-
-export async function POST(request: NextRequest, { params }: Params) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ profileId: string }> }
+) {
   try {
-    // 1. Verify Authentication Session
-    if (!isAuthenticated(request)) {
-      return NextResponse.json({ error: "Unauthorized admin session" }, { status: 401 });
+    if (!(await isAuthenticated(request))) {
+      return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
     }
 
-    const { profileId: rawProfileId } = await params;
-    const profileId = rawProfileId as PlatformProfile["id"];
-    const { value, effectiveAt, note } = await request.json();
+    const { profileId } = await params;
+    const body = await request.json();
+    const { currentValue, manualAudienceOverride, manualOverrideEnabled, published } = body;
 
-    // 2. Validate Inputs
-    const parsedValue = Number(value);
-    if (isNaN(parsedValue) || parsedValue < 0) {
-      return NextResponse.json({ error: "Invalid metric value" }, { status: 400 });
-    }
-
-    // 3. Fetch current platform profile
     const profile = await getPlatformProfile(profileId);
     if (!profile) {
-      return NextResponse.json({ error: "Platform profile not found" }, { status: 404 });
+      return NextResponse.json({ error: "Platform channel not found" }, { status: 404 });
     }
 
-    // 4. Update Profile Fields
-    const previousValue = profile.currentValue;
-    const updatedProfile: PlatformProfile = {
+    const targetCount =
+      manualAudienceOverride != null
+        ? Number(manualAudienceOverride)
+        : Number(currentValue);
+
+    if (isNaN(targetCount) || targetCount < 0 || !Number.isInteger(targetCount)) {
+      return NextResponse.json(
+        { error: "Audience count must be a non-negative integer" },
+        { status: 400 }
+      );
+    }
+
+    const previousValue = profile.manualAudienceCount ?? profile.manualAudienceOverride ?? profile.currentValue;
+    const now = new Date().toISOString();
+
+    const updatedProfile = {
       ...profile,
+      currentValue: targetCount,
+      currentAudienceCount: targetCount,
+      manualAudienceCount: manualOverrideEnabled || manualAudienceOverride != null ? targetCount : null,
+      manualAudienceOverride: manualOverrideEnabled || manualAudienceOverride != null ? targetCount : null,
+      manualOverrideEnabled: Boolean(manualOverrideEnabled || manualAudienceOverride != null),
       previousValue,
-      currentValue: parsedValue,
-      effectiveAt: effectiveAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      updatedBy: "admin-quick-editor",
+      updatedAt: now,
+      published: published ?? true,
+      isPublished: published ?? true,
     };
 
+    // 1. Save updated profile in persistent DB
     await savePlatformProfile(updatedProfile);
 
-    // 5. Generate Metric History Snapshot
-    const snapshotId = `snap-${profileId}-${Date.now()}`;
-    const newSnapshot: PlatformMetricSnapshot = {
-      id: snapshotId,
-      profileId,
-      metric: profile.primaryMetric,
-      value: parsedValue,
-      effectiveAt: effectiveAt || new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      source: "manual-admin-update",
-      sourceReportId: null,
-    };
+    // 2. Log audience metric history entry (§4)
+    await saveAudienceMetricHistory({
+      id: `hist-${Date.now()}`,
+      channelId: profile.slug || profile.id,
+      previousValue,
+      newValue: targetCount,
+      source: "manual-admin",
+      effectiveDate: now,
+      changedByAdminId: "admin",
+      createdAt: now,
+    });
 
-    await savePlatformMetricSnapshot(newSnapshot);
+    // 3. Log admin audit action (§11)
+    await logAdminAction({
+      id: `audit-${Date.now()}`,
+      adminId: "admin",
+      action: "UPDATE_AUDIENCE_COUNT",
+      entityType: "CHANNEL",
+      entityId: profile.slug || profile.id,
+      previousValue,
+      newValue: targetCount,
+      createdAt: now,
+    });
+
+    // 4. Invalidate Next.js cache tags and paths (§9)
+    try {
+      // Next 16 signature: (tag, profile) — 'max' = stale-while-revalidate.
+      revalidateTag("creator-metrics", "max");
+    } catch {
+      // Ignore fallback if tag not registered
+    }
+
+    // Every route that renders audience counts. (/youtube does not exist —
+    // the YouTube surface lives at /analytics/youtube.)
+    const revalidatedPaths = [
+      "/",
+      "/fitness",
+      "/finance",
+      "/analytics",
+      "/analytics/fitness",
+      "/analytics/finance",
+      "/analytics/youtube",
+      "/work-with-me",
+      "/ugc",
+    ];
+
+    for (const path of revalidatedPaths) {
+      try {
+        revalidatePath(path);
+      } catch {
+        // Ignore fallback
+      }
+    }
 
     return NextResponse.json({
       success: true,
-      message: `Successfully updated ${profile.displayName} to ${parsedValue.toLocaleString()}`,
-      profile: updatedProfile,
-      snapshot: newSnapshot,
+      message: `Updated ${profile.displayName} to ${targetCount.toLocaleString()} (${formatCompactCount(targetCount)}) everywhere on public website.`,
+      channel: updatedProfile,
+      revalidatedPaths,
     });
-  } catch (err: any) {
-    console.error("Platform update API failed", err);
-    return NextResponse.json({ error: "Failed to update platform profile count" }, { status: 500 });
-  }
-}
-
-// Support fetching history for this profile as well
-export async function GET(request: NextRequest, { params }: Params) {
-  try {
-    const { profileId } = await params;
-    const { getPlatformMetricHistory } = require("@/lib/storage/db");
-    const history = await getPlatformMetricHistory(profileId as any);
-    return NextResponse.json(history);
   } catch (err) {
-    return NextResponse.json({ error: "Failed to fetch platform metrics history" }, { status: 500 });
+    console.error("Failed to update platform profile:", err);
+    return NextResponse.json({ error: "Server error during metric update" }, { status: 500 });
   }
 }

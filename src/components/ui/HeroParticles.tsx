@@ -2,17 +2,27 @@
 
 import { useEffect, useRef } from "react";
 
-export default function HeroParticles() {
+type HeroParticlesProps = {
+  theme?: "maroon" | "blue";
+};
+
+export default function HeroParticles({ theme = "maroon" }: HeroParticlesProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  const isMaroon = theme === "maroon";
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
+    // Decorative only — skip entirely for reduced-motion users.
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    let animationFrameId: number;
+    let animationFrameId = 0;
+    let visible = true;
     let width = (canvas.width = canvas.offsetWidth);
     let height = (canvas.height = canvas.offsetHeight);
 
@@ -37,14 +47,21 @@ export default function HeroParticles() {
     }
 
     const particles: Particle[] = [];
-    const particleCount = 35;
+    const particleCount = 18;
 
-    const colors = [
-      "rgba(255, 255, 255, 0.12)",
-      "rgba(255, 255, 255, 0.22)",
-      "rgba(80, 145, 255, 0.2)",
-      "rgba(80, 145, 255, 0.35)",
-    ];
+    const colors = isMaroon
+      ? [
+          "rgba(255, 255, 255, 0.30)",
+          "rgba(255, 255, 255, 0.50)",
+          "rgba(244, 114, 182, 0.45)",
+          "rgba(225, 29, 72, 0.45)",
+        ]
+      : [
+          "rgba(255, 255, 255, 0.20)",
+          "rgba(255, 255, 255, 0.35)",
+          "rgba(56, 189, 248, 0.35)",
+          "rgba(47, 120, 255, 0.45)",
+        ];
 
     const types: Particle["type"][] = ["plus", "dot", "circle", "square"];
 
@@ -117,6 +134,8 @@ export default function HeroParticles() {
 
     // Animation loop
     const animate = () => {
+      if (!visible) return; // parked — restarted by the observer
+
       // Lerp mouse coordinates
       mouse.x += (mouse.targetX - mouse.x) * 0.1;
       mouse.y += (mouse.targetY - mouse.y) * 0.1;
@@ -172,23 +191,44 @@ export default function HeroParticles() {
       animationFrameId = requestAnimationFrame(animate);
     };
 
+    // Park the loop whenever the hero leaves the viewport or the tab hides.
+    const setRunning = (run: boolean) => {
+      if (run && !visible) {
+        visible = true;
+        animationFrameId = requestAnimationFrame(animate);
+      } else if (!run) {
+        visible = false;
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setRunning(entry.isIntersecting && !document.hidden),
+      { threshold: 0 },
+    );
+    observer.observe(canvas);
+
+    const handleVisibility = () => setRunning(!document.hidden);
+    document.addEventListener("visibilitychange", handleVisibility);
+
     animate();
 
     return () => {
       window.removeEventListener("resize", handleResize);
+      document.removeEventListener("visibilitychange", handleVisibility);
+      observer.disconnect();
       if (parent) {
         parent.removeEventListener("mousemove", handleMouseMove);
         parent.removeEventListener("mouseleave", handleMouseLeave);
       }
       cancelAnimationFrame(animationFrameId);
     };
-  }, []);
+  }, [isMaroon]);
 
   return (
     <canvas
       ref={canvasRef}
       className="absolute inset-0 w-full h-full pointer-events-none z-10"
-      style={{ mixBlendMode: "screen" }}
     />
   );
 }

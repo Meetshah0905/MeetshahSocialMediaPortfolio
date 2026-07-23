@@ -6,6 +6,9 @@ import { MotionProvider } from "@/components/motion/MotionProvider";
 import { SmoothScrollProvider } from "@/components/motion/SmoothScrollProvider";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { Suspense } from "react";
+import { RouteScrollManager } from "@/components/navigation/RouteScrollManager";
+import { AIAssistantWidget } from "@/components/ui/AIAssistantWidget";
 
 /**
  * Fonts are self-hosted by next/font at build time — no third-party request at
@@ -81,10 +84,15 @@ export default function RootLayout({
 
         <MotionProvider>
           <SmoothScrollProvider>
+            <Suspense fallback={null}>
+              <RouteScrollManager />
+            </Suspense>
             <Header />
             <main id="main" className="flex-1">
               {children}
             </main>
+            {/* Mounted once globally (§13); hides itself on admin routes. */}
+            <AIAssistantWidget />
             <Footer />
           </SmoothScrollProvider>
         </MotionProvider>

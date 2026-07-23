@@ -1,4 +1,6 @@
-import type { Metadata } from "next";
+"use client";
+
+import { m } from "motion/react";
 import { Container } from "@/components/ui/Container";
 import { Section } from "@/components/ui/Section";
 import { Badge } from "@/components/ui/Badge";
@@ -6,22 +8,31 @@ import { Card } from "@/components/ui/Card";
 import { SafeImage } from "@/components/ui/SafeImage";
 import { ArrowPillButton } from "@/components/ui/ArrowPillButton";
 import { site } from "@/content/site";
-import { Heart, Compass, Target, Mail } from "lucide-react";
-
-export const metadata: Metadata = {
-  title: "About Meet Shah — Creator Story & Vision",
-  description: "Learn about Meet Shah's background, journey combining technical analysis with fitness & finance creation, and creative philosophy.",
-};
+import { imageManifest } from "@/content/imageManifest";
+import { Heart, Compass, Target, Mail, MapPin } from "lucide-react";
 
 export default function AboutPage() {
   return (
     <div className="bg-[#f7f7f4] text-[#080b12] min-h-screen">
       {/* Hero / Lakeside Story */}
-      <Section tone="soft" spacing="default" className="pt-24 lg:pt-32 pb-16 bg-white border-b border-[#0a0a0a]/10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      <Section tone="soft" spacing="default" className="pt-8 sm:pt-10 lg:pt-12 pb-12 lg:pb-16 bg-white border-b border-[#0a0a0a]/10 relative overflow-hidden">
+        {/* Subtle background glow */}
+        <div className="absolute top-1/4 -left-20 size-96 rounded-full bg-[#2e7bff]/5 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-10 right-10 size-96 rounded-full bg-[#2e7bff]/8 blur-3xl pointer-events-none" />
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10">
           {/* Left panel: Lakeside Portrait */}
-          <div className="lg:col-span-5 relative flex justify-center py-6 order-last lg:order-first">
-            <div className="relative w-full max-w-[360px] aspect-[3/4] rounded-lg overflow-hidden border border-[#0a0a0a]/10 shadow-2xl bg-white">
+          <m.div 
+            initial={{ opacity: 0, scale: 0.94, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+            className="lg:col-span-5 relative flex justify-center py-6 order-last lg:order-first"
+          >
+            <m.div 
+              whileHover={{ y: -6, scale: 1.015 }}
+              transition={{ duration: 0.35, ease: "easeOut" }}
+              className="relative w-full max-w-[360px] aspect-[3/4] rounded-2xl overflow-hidden border border-[#0a0a0a]/10 shadow-2xl bg-white group cursor-pointer"
+            >
               <SafeImage
                 src="/images/meet/about-lake.png"
                 alt="Meet Shah portrait at the lake"
@@ -29,32 +40,58 @@ export default function AboutPage() {
                 fill
                 priority
                 sizes="(max-width: 768px) 100vw, 400px"
-                className="object-cover"
+                className="object-cover group-hover:scale-[1.025] transition-transform duration-500 ease-out"
               />
-              <div className="absolute bottom-4 left-4 bg-[#080b12]/95 backdrop-blur-md px-3.5 py-1.5 rounded-md text-white text-[10px] font-semibold uppercase tracking-wider">
-                Ahmedabad, India
+              <div className="absolute bottom-4 left-4 bg-[#080b12]/90 backdrop-blur-md px-3.5 py-1.5 rounded-full text-white text-[10px] font-semibold uppercase tracking-wider border border-white/10 flex items-center gap-1.5 shadow-md">
+                <MapPin className="size-3 text-[#2e7bff]" />
+                <span>Ahmedabad, India</span>
               </div>
-            </div>
-          </div>
+            </m.div>
+          </m.div>
 
           {/* Right panel: Intro Copy */}
-          <div className="lg:col-span-7 text-left flex flex-col items-start space-y-6">
-            <Badge className="bg-[#2e7bff] text-white border-transparent">
-              My Journey
-            </Badge>
-            <h1 className="font-heading text-4xl sm:text-6xl font-bold tracking-tight text-[#080b12] leading-tight">
+          <m.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
+            className="lg:col-span-7 text-left flex flex-col items-start space-y-6"
+          >
+            <m.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+              <Badge className="bg-[#2e7bff] text-white border-transparent shadow-xs">
+                My Journey
+              </Badge>
+            </m.div>
+
+            <m.h1 
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25, duration: 0.6 }}
+              className="font-heading text-4xl sm:text-6xl font-bold tracking-tight text-[#080b12] leading-tight"
+            >
               Combining logic, fitness, <br />
               <span className="text-[#2e7bff]">and finance strategy.</span>
-            </h1>
-            <p className="text-base sm:text-lg text-[#3f4651] max-w-[48ch] leading-relaxed">
+            </m.h1>
+
+            <m.p 
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35, duration: 0.6 }}
+              className="text-base sm:text-lg text-[#3f4651] max-w-[48ch] leading-relaxed"
+            >
               I&apos;m Meet Shah, a creator based in Ahmedabad, India. My journey combines technical discipline with creative storytelling. By focusing on two high-intent niches—fitness and finance—I help people make practical body and money decisions.
-            </p>
-            <div className="flex gap-4">
+            </m.p>
+
+            <m.div 
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.45, duration: 0.6 }}
+              className="flex gap-4 pt-2"
+            >
               <ArrowPillButton href="/work-with-me" size="md">
                 View My Work
               </ArrowPillButton>
-            </div>
-          </div>
+            </m.div>
+          </m.div>
         </div>
       </Section>
 
@@ -62,21 +99,37 @@ export default function AboutPage() {
       <Section tone="default" spacing="default" className="bg-[#f7f7f4]">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
           {/* Left panel: Poster display */}
-          <div className="lg:col-span-4 flex justify-center lg:sticky lg:top-24">
-            <div className="relative w-full max-w-[340px] aspect-[3/4] rounded-lg overflow-hidden border border-[#0a0a0a]/10 shadow-lg bg-white">
+          <m.div 
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.6 }}
+            className="lg:col-span-4 flex justify-center lg:sticky lg:top-24"
+          >
+            <m.div 
+              whileHover={{ y: -4, scale: 1.015 }}
+              transition={{ duration: 0.3 }}
+              className="relative w-full max-w-[340px] aspect-[3/4] rounded-2xl overflow-hidden border border-[#0a0a0a]/10 shadow-lg bg-white group cursor-pointer"
+            >
               <SafeImage
-                src="/images/meet/meet-about-poster.jpg"
-                alt="Meet Shah Red Editorial Poster"
-                label="Editorial poster"
+                src={imageManifest.aboutPoster.src}
+                alt={imageManifest.aboutPoster.alt}
+                label="Meet Shah portrait"
                 fill
                 sizes="(max-width: 768px) 100vw, 400px"
-                className="object-cover"
+                className="object-cover group-hover:scale-[1.025] transition-transform duration-500 ease-out"
               />
-            </div>
-          </div>
+            </m.div>
+          </m.div>
 
           {/* Right panel: Biography & Core Principles */}
-          <div className="lg:col-span-8 space-y-12">
+          <m.div 
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="lg:col-span-8 space-y-12"
+          >
             <div className="space-y-4">
               <h2 className="font-heading text-2xl font-bold text-[#080b12]">
                 How It Began
@@ -103,52 +156,99 @@ export default function AboutPage() {
                 Core Principles
               </h3>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                <Card className="p-5 border border-[#0a0a0a]/10 bg-white">
-                  <div className="size-8 rounded-full bg-[#dce9ff] text-[#155de1] flex items-center justify-center mb-3">
-                    <Target className="size-4" />
-                  </div>
-                  <h4 className="font-heading text-xs font-bold text-[#080b12]">Educational Focus</h4>
-                  <p className="mt-1 text-[10px] text-[#3f4651] leading-relaxed">
-                    Every asset is built to explain a concept or correct a common mistake, maximizing utility.
-                  </p>
-                </Card>
+              <m.div 
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                variants={{
+                  hidden: {},
+                  visible: { transition: { staggerChildren: 0.1 } },
+                }}
+                className="grid grid-cols-1 sm:grid-cols-3 gap-6"
+              >
+                <m.div
+                  variants={{
+                    hidden: { opacity: 0, y: 16 },
+                    visible: { opacity: 1, y: 0 },
+                  }}
+                >
+                  <Card className="p-5 border border-[#0a0a0a]/10 bg-white hover:border-[#2e7bff]/40 hover:shadow-md transition-all duration-300">
+                    <div className="size-8 rounded-full bg-[#dce9ff] text-[#155de1] flex items-center justify-center mb-3">
+                      <Target className="size-4" />
+                    </div>
+                    <h4 className="font-heading text-xs font-bold text-[#080b12]">Educational Focus</h4>
+                    <p className="mt-1 text-[10px] text-[#3f4651] leading-relaxed">
+                      Every asset is built to explain a concept or correct a common mistake, maximizing utility.
+                    </p>
+                  </Card>
+                </m.div>
 
-                <Card className="p-5 border border-[#0a0a0a]/10 bg-white">
-                  <div className="size-8 rounded-full bg-[#dce9ff] text-[#155de1] flex items-center justify-center mb-3">
-                    <Compass className="size-4" />
-                  </div>
-                  <h4 className="font-heading text-xs font-bold text-[#080b12]">Transparency First</h4>
-                  <p className="mt-1 text-[10px] text-[#3f4651] leading-relaxed">
-                    Clear disclaimers in finance and realistic expectations in fitness build trust.
-                  </p>
-                </Card>
+                <m.div
+                  variants={{
+                    hidden: { opacity: 0, y: 16 },
+                    visible: { opacity: 1, y: 0 },
+                  }}
+                >
+                  <Card className="p-5 border border-[#0a0a0a]/10 bg-white hover:border-[#2e7bff]/40 hover:shadow-md transition-all duration-300">
+                    <div className="size-8 rounded-full bg-[#dce9ff] text-[#155de1] flex items-center justify-center mb-3">
+                      <Compass className="size-4" />
+                    </div>
+                    <h4 className="font-heading text-xs font-bold text-[#080b12]">Transparency First</h4>
+                    <p className="mt-1 text-[10px] text-[#3f4651] leading-relaxed">
+                      Clear disclaimers in finance and realistic expectations in fitness build trust.
+                    </p>
+                  </Card>
+                </m.div>
 
-                <Card className="p-5 border border-[#0a0a0a]/10 bg-white">
-                  <div className="size-8 rounded-full bg-[#dce9ff] text-[#155de1] flex items-center justify-center mb-3">
-                    <Heart className="size-4" />
-                  </div>
-                  <h4 className="font-heading text-xs font-bold text-[#080b12]">Professional Delivery</h4>
-                  <p className="mt-1 text-[10px] text-[#3f4651] leading-relaxed">
-                    Meeting deadlines, providing clear scripts, and maintaining brand standards at every step.
-                  </p>
-                </Card>
-              </div>
+                <m.div
+                  variants={{
+                    hidden: { opacity: 0, y: 16 },
+                    visible: { opacity: 1, y: 0 },
+                  }}
+                >
+                  <Card className="p-5 border border-[#0a0a0a]/10 bg-white hover:border-[#2e7bff]/40 hover:shadow-md transition-all duration-300">
+                    <div className="size-8 rounded-full bg-[#dce9ff] text-[#155de1] flex items-center justify-center mb-3">
+                      <Heart className="size-4" />
+                    </div>
+                    <h4 className="font-heading text-xs font-bold text-[#080b12]">Professional Delivery</h4>
+                    <p className="mt-1 text-[10px] text-[#3f4651] leading-relaxed">
+                      Meeting deadlines, providing clear scripts, and maintaining brand standards at every step.
+                    </p>
+                  </Card>
+                </m.div>
+              </m.div>
             </div>
-          </div>
+          </m.div>
         </div>
       </Section>
 
       {/* Quick stats band */}
       <section className="border-t border-[#0a0a0a]/10 py-16 bg-white">
         <Container className="text-center max-w-2xl flex flex-col items-center">
-          <h2 className="font-heading text-2xl sm:text-4xl font-bold text-[#080b12] tracking-tight">
+          <m.h2 
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="font-heading text-2xl sm:text-4xl font-bold text-[#080b12] tracking-tight"
+          >
             Let&apos;s start a project together.
-          </h2>
-          <p className="mt-4 text-xs sm:text-sm text-[#3f4651] leading-relaxed">
+          </m.h2>
+          <m.p 
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+            className="mt-4 text-xs sm:text-sm text-[#3f4651] leading-relaxed"
+          >
             Reach out to discuss campaign integration options, request custom UGC assets, or review direct Instagram analytics.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-4 justify-center items-center">
+          </m.p>
+          <m.div 
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+            className="mt-8 flex flex-wrap gap-4 justify-center items-center"
+          >
             <ArrowPillButton href="/contact" size="md">
               Start Collaboration
             </ArrowPillButton>
@@ -159,9 +259,10 @@ export default function AboutPage() {
               <Mail className="size-4" />
               {site.email}
             </a>
-          </div>
+          </m.div>
         </Container>
       </section>
     </div>
   );
 }
+

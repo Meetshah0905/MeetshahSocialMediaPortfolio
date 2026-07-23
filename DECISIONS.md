@@ -91,3 +91,39 @@ The preview tab reports `document.visibilityState === "hidden"`, so Chrome throt
 ### `sumOrNull` returns null for an all-null input
 
 In `src/lib/utils/numbers.ts`. A plain `reduce` would return `0`, and §2 forbids showing a zero that reads like a real measurement. This is the foundation for the §24 combined-analytics rules.
+
+---
+
+## Reform pass — 21 Jul 2026 (audit-and-repair of the Antigravity build)
+
+### Security repairs (the critical set)
+
+1. **Static admin cookie replaced.** The session cookie value was the literal string `active_authenticated_session` — anyone could set it by hand and become admin. Now: HMAC-SHA256-signed `<expiry>.<sig>` token over `ANALYTICS_SESSION_SECRET`, 2-hour expiry, verified via Web Crypto in both proxy and routes.
+2. **Hardcoded default credentials removed.** `admin@meetshah.com` / `meetshah2026` were compiled-in fallbacks. Login now FAILS CLOSED until `ADMIN_EMAIL`, `ADMIN_PASSWORD` and `ANALYTICS_SESSION_SECRET` are set.
+3. **Public unauthenticated report POST removed.** `/api/reports` accepted a POST from anyone and stamped it `confidence: "high"`. Creation now lives only at `/api/admin/reports` (session + Zod).
+4. **Proxy now guards `/api/admin/*`** (401), not just admin pages.
+5. **Leaked Gemini key stripped from `.env.example`** — must be rotated; template files hold placeholders only.
+6. **Rate limiting** on login (5/min), analyze (10/5min), chat (20/min): Upstash when configured, in-process fallback otherwise.
+
+### Honesty repairs
+
+- Purged the three fabricated "published" reports (fitness/finance/youtube-q2-2026) — backup in `scratch/removed-fake-reports.backup.json`.
+- Analyze route's fake "95% confidence" mock extraction removed; unconfigured → honest 503.
+- Chat mock that returned invented numbers with fake "Source:" citations removed; unconfigured → honest 503.
+- `AnalyticsHeroVisual`'s invented Jan–May growth points behind a "Verified / LIVE DATA" badge removed; trend renders only from ≥2 real history points, badge now says SELF-REPORTED.
+- All `?? 11900 / 15100 / 19694` fallbacks removed; missing values render "—".
+- Print/PDF view: published reports only, renders only supplied metrics ("not supplied" otherwise), no fake `.pdf` filename on an HTML body.
+- Seeds are zero-valued and unpublished; production without Redis throws `StorageNotConfiguredError` instead of silently writing to the ephemeral filesystem.
+
+### Structure
+
+- One admin: `/analytics/admin/*` (duplicate system with its own login and a mock upload pipeline writing into `public/uploads/`) deleted; route now redirects to `/admin`.
+- Homepage metrics are server-loaded props (was: client fetch with a discarded `/api/reports` call and "..." flashes).
+- New public read endpoint `/api/platforms` (published channels, safe fields) so public pages never call admin APIs.
+- Chatbot mounted once in the root layout, self-hides on `/admin*`.
+- Gemini isolated in `src/lib/ai/gemini.ts` + `prompts.ts`: schema-enforced JSON output (`responseSchema`, temperature 0), Zod-validated as untrusted input; `systemInstruction` used correctly (a `role:"system"` entry in `contents` is rejected by the API).
+- `revalidateTag` uses the Next 16 two-argument signature `("creator-metrics", "max")`.
+
+### Verified end-to-end (HTTP-level, dev server)
+
+Login fail-closed → 503 · wrong password → 401 · forged static cookie → 401 · signed login → channel update 12,000→12,100 → homepage re-render + history + audit records → restored. Draft hidden from public archive and PDF (404) → publish → visible + honest PDF → unpublish → hidden. Rate limit → 429. Client bundle scan: no secrets. Browser-pane screenshots remain impossible in this environment (rAF frozen — see earlier entry); visual/animation checks must be done in a real browser.

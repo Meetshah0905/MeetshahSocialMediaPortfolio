@@ -96,7 +96,7 @@ h3,
 h4,
 h5,
 h6 {
-  color: var(--color-heading);
+  color: inherit;
   font-family: var(--font-heading);
   font-weight: 600;
   letter-spacing: -0.03em;
@@ -195,3 +195,11 @@ html.lenis body {
     scroll-behavior: auto !important;
   }
 }
+
+/* ==========================================================================
+   HASH AND ANCHOR BEHAVIOUR
+   ========================================================================== */
+[id] {
+  scroll-margin-top: calc(var(--header-height, 80px) + 24px);
+}
+

@@ -1,20 +1,13 @@
 import type { CreatorChannel, PersonaId, SocialLink } from "@/types/content";
-
-/**
- * Global site identity (§7 of the content strategy).
- * Every value here is editable copy — nothing is derived or computed.
- */
+import { socials as centralSocials } from "./socials";
 
 export const site = {
   name: "Meet Shah",
-  /** Kept conservative — no unearned titles or credentials (§16). */
   role: "Fitness & Finance Creator",
   location: "Ahmedabad, India",
   email: "editsbymks@gmail.com",
-  /** Empty string hides the phone entirely (§26). */
   phone: "",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
-  /** Where the "contact me" CTA should send people by default. */
   primaryContactPreference: "email" as "email" | "instagram",
 } as const;
 
@@ -33,17 +26,16 @@ export const seo = {
   ],
 } as const;
 
-/**
- * The two creator verticals. Meet Shah is the umbrella brand; these are
- * distinct positions beneath it and must never be described as one audience.
- */
 export const channels: Record<PersonaId, CreatorChannel> = {
   fitness: {
     id: "fitness",
     name: "Fitness",
     handle: "@meetsofficial",
     profileUrl: "https://www.instagram.com/meetsofficial/",
-    followerDisplay: "11.9K",
+    // Deprecated: audience counts live in the metrics store (data/profiles.json
+    // via src/lib/storage/db.ts), never in content files (§2). Kept "" so no
+    // component can quietly render a stale hardcoded number.
+    followerDisplay: "",
     positioning: "Helping you improve your body the right way.",
     description: "Practical fitness content focusing on training technique, nutrition guidelines, and sustainable workout plans.",
     contentPillars: [
@@ -61,7 +53,7 @@ export const channels: Record<PersonaId, CreatorChannel> = {
     name: "Finance",
     handle: "@meet.fitfix",
     profileUrl: "https://www.instagram.com/meet.fitfix/",
-    followerDisplay: "15.1K",
+    followerDisplay: "",
     positioning: "Helping you invest with clarity.",
     description: "Relatable finance insights designed to simplify investing, personal finance, and market trends.",
     contentPillars: [
@@ -76,9 +68,9 @@ export const channels: Record<PersonaId, CreatorChannel> = {
   },
 };
 
-export const channelList: CreatorChannel[] = [channels.fitness, channels.finance];
 
-import { socials as centralSocials } from "./socials";
+
+export const channelList: CreatorChannel[] = [channels.fitness, channels.finance];
 
 export const socialUrls = {
   instagramFitness: centralSocials.instagramFitness.url,
@@ -111,9 +103,5 @@ export const socials: SocialLink[] = [
   },
 ];
 
-/**
- * Informational-content disclaimer for the finance surfaces (§16).
- * Meet is not presented as a licensed adviser.
- */
 export const financeDisclaimer =
   "Finance content is educational and informational only. It is not financial advice, and it is not a recommendation to buy or sell any product.";

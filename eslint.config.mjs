@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Throwaway local scripts, not product code.
+    "scratch/**",
   ]),
 ]);
 
