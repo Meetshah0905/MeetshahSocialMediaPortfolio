@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Container } from "@/components/ui/Container";
 import { AdminBackButton } from "@/components/admin/AdminBackButton";
 import { BatchReportForm } from "@/components/admin/BatchReportForm";
@@ -24,7 +25,9 @@ export default function NewReportPage() {
           </div>
         </div>
 
-        <BatchReportForm />
+        <Suspense fallback={<div className="p-8 text-center font-mono text-xs text-muted">Loading report form...</div>}>
+          <BatchReportForm />
+        </Suspense>
       </Container>
     </div>
   );

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Check, ChevronDown, ChevronUp, X } from "lucide-react";
 import {
   formatPdfFileSize,
@@ -151,8 +151,15 @@ function panelHasData(p: PanelState): boolean {
 
 export function BatchReportForm() {
   const router = useRouter();
-  const [channel, setChannel] = useState<ChannelSlug>("instagram-fitness");
-  const [panels, setPanels] = useState<PanelState[]>([makePanel("30", "instagram-fitness")]);
+  const searchParams = useSearchParams();
+  const paramChannel = searchParams.get("channel") as ChannelSlug | null;
+  const initialChannel: ChannelSlug =
+    paramChannel && CHANNELS.some((c) => c.slug === paramChannel)
+      ? paramChannel
+      : "instagram-fitness";
+
+  const [channel, setChannel] = useState<ChannelSlug>(initialChannel);
+  const [panels, setPanels] = useState<PanelState[]>([makePanel("30", initialChannel)]);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
