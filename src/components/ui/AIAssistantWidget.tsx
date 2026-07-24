@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { MessageSquare, X, Send, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { useBodyScrollLock } from "@/lib/hooks/useBodyScrollLock";
 
 type Message = {
   role: "user" | "assistant";
@@ -42,6 +43,27 @@ export function AIAssistantWidget() {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, loading]);
+
+  // Below the sm breakpoint the chat panel behaves as a bottom sheet and the
+  // background must not scroll under it. Above sm it's a floating card and
+  // the page stays interactive, so no lock.
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(max-width: 639px)");
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+  useBodyScrollLock(isOpen && isMobile);
+
+  // Close on route change so we don't strand an open panel over the new page.
+  const [lastPath, setLastPath] = useState(pathname);
+  if (lastPath !== pathname) {
+    setLastPath(pathname);
+    if (isOpen) setIsOpen(false);
+  }
 
   const handleSend = async (text: string) => {
     if (!text.trim() || loading) return;
@@ -88,13 +110,17 @@ export function AIAssistantWidget() {
   }
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 select-none">
-      {/* Floating activation button */}
+    <>
+      {/* Launcher — floats above content but respects iOS home-indicator. */}
       {!isOpen && (
         <button
           ref={buttonRef}
           onClick={() => setIsOpen(true)}
-          className="size-14 rounded-full bg-blue hover:bg-blue-deep text-white shadow-lift flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 group border border-blue-light/10"
+          className="fixed z-50 size-14 rounded-full bg-blue hover:bg-blue-deep text-white shadow-lift flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 group border border-blue-light/10"
+          style={{
+            right: "max(1.5rem, env(safe-area-inset-right))",
+            bottom: "max(1.5rem, env(safe-area-inset-bottom))",
+          }}
           aria-label="Open Analytics Assistant"
         >
           <MessageSquare className="size-6 group-hover:rotate-6 transition-transform" />
@@ -104,13 +130,14 @@ export function AIAssistantWidget() {
         </button>
       )}
 
-      {/* Floating Side Drawer (Desktop) / Bottom Sheet (Mobile) */}
+      {/* Full-screen bottom sheet on mobile, floating card on sm+ */}
       {isOpen && (
         <Card
           className="
-            w-[90vw] sm:w-[400px] h-[550px] max-h-[80vh]
-            border border-border bg-white shadow-soft rounded-panel
+            fixed z-50 border border-border bg-white shadow-soft
             flex flex-col overflow-hidden transition-all duration-300
+            inset-x-0 bottom-0 h-[85dvh] rounded-t-panel pb-[env(safe-area-inset-bottom)]
+            sm:inset-auto sm:right-6 sm:bottom-6 sm:w-[400px] sm:h-[550px] sm:max-h-[80vh] sm:rounded-panel sm:pb-0
           "
         >
           {/* Header */}
@@ -200,7 +227,7 @@ export function AIAssistantWidget() {
               placeholder="Ask about followers, reach, views..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              className="flex-1 border border-border px-3.5 py-2.5 rounded-lg text-xs bg-surface-soft focus:outline-none focus:border-blue text-ink"
+              className="flex-1 border border-border px-3.5 py-2.5 rounded-lg text-base sm:text-xs bg-surface-soft focus:outline-none focus:border-blue text-ink"
               disabled={loading}
             />
             <Button
@@ -214,6 +241,6 @@ export function AIAssistantWidget() {
           </form>
         </Card>
       )}
-    </div>
+    </>
   );
 }

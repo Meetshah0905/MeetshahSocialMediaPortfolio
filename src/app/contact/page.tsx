@@ -13,6 +13,8 @@ import { InstagramIcon, LinkedinIcon, TwitterIcon } from "@/components/ui/icons"
 
 export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -23,9 +25,33 @@ export default function ContactPage() {
     message: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setIsSubmitting(false);
+    setIsSubmitting(true);
+    setErrorMessage(null);
+
+    try {
+      const res = await fetch("/api/proposals", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Failed to submit proposal inquiry. Please try again.");
+      }
+
+      setSubmitted(true);
+    } catch (err) {
+      setErrorMessage((err as Error).message || "An unexpected error occurred.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -151,6 +177,12 @@ export default function ContactPage() {
                     Campaign Details Proposal
                   </h3>
 
+                  {errorMessage && (
+                    <div role="alert" className="p-3.5 rounded-lg border border-red-200 bg-red-50 text-xs font-semibold text-red-600">
+                      {errorMessage}
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div>
                       <label htmlFor="user-name" className="text-[10px] font-bold text-[#0a0a0a] uppercase block mb-2">
@@ -266,7 +298,7 @@ export default function ContactPage() {
                   </div>
 
                   <div>
-                    <ArrowPillButton size="lg" fullWidth>
+                    <ArrowPillButton size="lg" fullWidth loading={isSubmitting} disabled={isSubmitting}>
                       Submit Proposal Inquiry
                     </ArrowPillButton>
                   </div>

@@ -44,6 +44,7 @@ yarn-error.log*
 # runtime state written by the local JSON storage adapter
 /data/audit.json
 /data/history.json
+/data/proposals.json
 
 # local PDF blob fallback — real (or smoke-test) uploads, not source
 /public/uploads/

@@ -209,15 +209,16 @@ function LatestReportCard({
         <div className="flex shrink-0 flex-col gap-2 md:min-w-[180px]">
           <Link
             href={`/analytics/reports/${report.slug}`}
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-blue px-5 py-3 text-[11px] font-bold uppercase tracking-wider text-white hover:bg-blue-deep"
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-blue px-5 py-3 text-[11px] font-bold uppercase tracking-wider text-white hover:bg-blue-deep transition-colors outline-none focus-visible:ring-2 focus-visible:ring-blue/50"
           >
-            View report <ArrowRight className="size-3.5" />
+            <span>View report</span> <ArrowRight className="size-3.5 shrink-0" />
           </Link>
           <a
             href={`/api/reports/${report.id}/pdf?download=1`}
-            className="inline-flex items-center justify-center gap-2 rounded-full border border-border bg-white px-5 py-3 text-[11px] font-bold uppercase tracking-wider text-ink hover:border-blue"
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-border bg-white px-5 py-3 text-[11px] font-bold uppercase tracking-wider text-ink hover:border-blue transition-colors outline-none focus-visible:ring-2 focus-visible:ring-blue/50"
           >
-            <Download className="size-3.5" /> Download PDF
+            <Download className="size-3.5 shrink-0 stroke-current" />
+            <span>Download PDF</span>
           </a>
         </div>
       </div>
@@ -266,19 +267,20 @@ function ChannelLatestCard({
       {report.executiveSummary && (
         <p className="mt-3 text-xs text-body line-clamp-3">{report.executiveSummary}</p>
       )}
-      <div className="mt-6 flex gap-2">
+      <div className="mt-6 flex items-center gap-2">
         <Link
           href={`/analytics/reports/${report.slug}`}
-          className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-full border border-border bg-white px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-ink hover:border-blue"
+          className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-full border border-border bg-white px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-ink hover:border-blue transition-colors outline-none focus-visible:ring-2 focus-visible:ring-blue/50"
         >
-          View
+          <span>View</span>
         </Link>
         <a
           href={`/api/reports/${report.id}/pdf?download=1`}
-          className="inline-flex items-center gap-1.5 rounded-full border border-border bg-white px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-ink hover:border-blue"
+          className="inline-flex items-center justify-center gap-1.5 rounded-full bg-blue px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-white hover:bg-blue-deep transition-colors outline-none focus-visible:ring-2 focus-visible:ring-blue/50"
           aria-label={`Download ${channel.name} PDF`}
         >
-          <Download className="size-3" />
+          <Download className="size-3 shrink-0 stroke-current" />
+          <span>Download PDF</span>
         </a>
       </div>
     </Card>
@@ -310,18 +312,19 @@ function ArchiveCard({ report }: { report: AnalyticsReport }) {
         <p className="mt-3 text-xs text-body line-clamp-3">{report.executiveSummary}</p>
       )}
       <MetricRow report={report} compact />
-      <div className="mt-5 flex gap-2">
+      <div className="mt-5 flex items-center gap-2">
         <Link
           href={`/analytics/reports/${report.slug}`}
-          className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-full bg-blue px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-white hover:bg-blue-deep"
+          className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-full border border-border bg-white px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-ink hover:border-blue transition-colors outline-none focus-visible:ring-2 focus-visible:ring-blue/50"
         >
-          View report
+          <span>View report</span>
         </Link>
         <a
           href={`/api/reports/${report.id}/pdf?download=1`}
-          className="inline-flex items-center gap-1.5 rounded-full border border-border bg-white px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-ink hover:border-blue"
+          className="inline-flex items-center justify-center gap-1.5 rounded-full bg-blue px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-white hover:bg-blue-deep transition-colors outline-none focus-visible:ring-2 focus-visible:ring-blue/50"
         >
-          <Download className="size-3" /> PDF
+          <Download className="size-3 shrink-0 stroke-current" />
+          <span>Download PDF</span>
         </a>
       </div>
     </Card>

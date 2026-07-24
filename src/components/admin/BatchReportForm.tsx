@@ -3,10 +3,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check, ChevronDown, ChevronUp, X } from "lucide-react";
-import type {
-  AnalyticsReportMetrics,
-  ChannelSlug,
-  ReportWindow,
+import {
+  formatPdfFileSize,
+  type AnalyticsReportMetrics,
+  type ChannelSlug,
+  type ReportWindow,
 } from "@/lib/storage/reportShared";
 
 /**
@@ -888,7 +889,7 @@ function PanelCard({
                 <span>
                   Uploaded: <strong>{panel.originalFilename || "report.pdf"}</strong>
                   {panel.pdfSizeBytes > 0 &&
-                    ` · ${(panel.pdfSizeBytes / 1024 / 1024).toFixed(2)} MB`}
+                    ` · ${formatPdfFileSize(panel.pdfSizeBytes)}`}
                 </span>
                 <button
                   type="button"
@@ -919,7 +920,7 @@ function PanelCard({
                   <div className="text-sm text-ink">
                     <p className="font-bold">{panel.pdfFile.name}</p>
                     <p className="mt-1 text-xs text-muted">
-                      {(panel.pdfFile.size / 1024 / 1024).toFixed(2)} MB
+                      {formatPdfFileSize(panel.pdfFile.size)}
                     </p>
                     <button
                       type="button"

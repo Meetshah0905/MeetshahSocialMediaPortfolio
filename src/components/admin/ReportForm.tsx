@@ -2,10 +2,11 @@
 
 import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import type {
-  AnalyticsReport,
-  ChannelSlug,
-  ReportWindow,
+import {
+  formatPdfFileSize,
+  type AnalyticsReport,
+  type ChannelSlug,
+  type ReportWindow,
 } from "@/lib/storage/reportShared";
 
 const CHANNELS: Array<{ slug: ChannelSlug; label: string; handle: string }> = [
@@ -446,7 +447,7 @@ export function ReportForm({
           <div className="flex items-center justify-between rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs text-emerald-800">
             <span>
               Uploaded: <strong>{originalFilename || "report.pdf"}</strong>
-              {pdfSize > 0 && ` · ${(pdfSize / 1024 / 1024).toFixed(2)} MB`}
+              {pdfSize > 0 && ` · ${formatPdfFileSize(pdfSize)}`}
             </span>
             <button
               type="button"
@@ -477,7 +478,7 @@ export function ReportForm({
               <div className="text-sm text-ink">
                 <p className="font-bold">{pdfFile.name}</p>
                 <p className="text-xs text-muted mt-1">
-                  {(pdfFile.size / 1024 / 1024).toFixed(2)} MB
+                  {formatPdfFileSize(pdfFile.size)}
                 </p>
                 <button
                   type="button"

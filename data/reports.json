@@ -1,1 +1,47 @@
-[]
+[
+  {
+    "id": "instagram-fitness-2026-06-23-9xymrq",
+    "slug": "instagram-fitness-30-days-2026-07-23-9xymrq",
+    "channel": "instagram-fitness",
+    "reportWindow": "30",
+    "periodStart": "2026-06-23",
+    "periodEnd": "2026-07-23",
+    "title": "Instagram Fitness - 30 days and 90 days Insights",
+    "pdfUrl": "/uploads/reports/instagram-fitness/2026-07-23/5f3ff002ed4c-meet-shah-instagram-fitness-30-days-2026-06-23-to-2026-07-23.pdf",
+    "pdfStorageKey": "reports/instagram-fitness/2026-07-23/5f3ff002ed4c-meet-shah-instagram-fitness-30-days-2026-06-23-to-2026-07-23.pdf",
+    "originalPdfFilename": "Instagram_Fitness_Analytics_Report_23Jun-22Jul2026.pdf",
+    "pdfSizeBytes": 1258026,
+    "status": "published",
+    "publishedAt": "2026-07-23T18:09:05.015Z",
+    "createdByAdminId": "admin",
+    "createdAt": "2026-07-23T17:22:39.675Z",
+    "updatedAt": "2026-07-23T18:09:05.015Z",
+    "highlights": [],
+    "metrics": {},
+    "archivedAt": null
+  },
+  {
+    "id": "instagram-finance-2026-04-23-vsl9pn",
+    "slug": "instagram-finance-custom-period-2026-07-23-kqoy18",
+    "channel": "instagram-finance",
+    "reportWindow": "custom",
+    "periodStart": "2026-04-23",
+    "periodEnd": "2026-07-23",
+    "title": "Instagram Finance — 30/90 Days Insights Report",
+    "highlights": [],
+    "metrics": {},
+    "pdfUrl": "/uploads/reports/instagram-finance/2026-07-23/ad3badf2d53c-meet-shah-instagram-finance-custom-period-2026-04-23-to-2026-07-23.pdf",
+    "pdfStorageKey": "reports/instagram-finance/2026-07-23/ad3badf2d53c-meet-shah-instagram-finance-custom-period-2026-04-23-to-2026-07-23.pdf",
+    "originalPdfFilename": "Instagram_Finance_Analytics_Report_30_90_Day_Jul2026.pdf",
+    "pdfSizeBytes": 4379941,
+    "coverImageUrl": null,
+    "coverImageStorageKey": null,
+    "status": "published",
+    "publishedAt": "2026-07-23T18:08:47.402Z",
+    "archivedAt": null,
+    "createdByAdminId": "admin",
+    "createdAt": "2026-07-23T18:08:41.463Z",
+    "updatedAt": "2026-07-23T18:08:47.402Z",
+    "pdfSha256": "ad3badf2d53cf8f3b44395d62aa5eb6080f06435f5247fde470e17a555ed6099"
+  }
+]

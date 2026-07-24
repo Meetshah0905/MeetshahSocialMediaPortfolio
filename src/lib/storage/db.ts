@@ -259,13 +259,16 @@ function readJSONFile<T>(filePath: string, seed: T): T {
     }
     if (!fs.existsSync(filePath)) {
       if (!isProductionWithoutRedis) {
-        fs.writeFileSync(filePath, JSON.stringify(seed, null, 2));
+        writeJSONFile(filePath, seed);
       }
       return seed;
     }
+
     const data = fs.readFileSync(filePath, "utf-8");
+    if (!data || !data.trim()) return seed;
     return JSON.parse(data) as T;
-  } catch {
+  } catch (err) {
+    console.error(`Error reading JSON file ${filePath}:`, err);
     return seed;
   }
 }
@@ -278,7 +281,9 @@ function writeJSONFile<T>(filePath: string, data: T) {
   if (!fs.existsSync(parentDir)) {
     fs.mkdirSync(parentDir, { recursive: true });
   }
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+  const tempPath = `${filePath}.tmp.${Date.now()}.${Math.random().toString(36).slice(2, 6)}`;
+  fs.writeFileSync(tempPath, JSON.stringify(data, null, 2), "utf-8");
+  fs.renameSync(tempPath, filePath);
 }
 
 // 1. Platform Profiles CRUD
@@ -392,7 +397,10 @@ function comparePublishedAtDesc(a: AnalyticsReport, b: AnalyticsReport): number 
 
 export async function getReport(id: string): Promise<AnalyticsReport | null> {
   if (redis) {
-    return await redis.get<AnalyticsReport>(REPORT_KEY(id));
+    const direct = await redis.get<AnalyticsReport>(REPORT_KEY(id));
+    if (direct) return direct;
+    const all = await loadAllReports();
+    return all.find((r) => r.id === id || r.slug === id) || null;
   }
   const list = readJSONFile<AnalyticsReport[]>(REPORTS_PATH, []);
   return list.find((r) => r.id === id || r.slug === id) || null;

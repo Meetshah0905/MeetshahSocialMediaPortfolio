@@ -95,3 +95,11 @@ export function isChannelSlug(value: string): value is ChannelSlug {
 export function isReportWindow(value: string): value is ReportWindow {
   return value === "30" || value === "60" || value === "90" || value === "custom";
 }
+
+export function formatPdfFileSize(bytes: number): string {
+  if (!bytes || bytes <= 0) return "0 B";
+  if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(1)} KB`;
+  }
+  return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
+}

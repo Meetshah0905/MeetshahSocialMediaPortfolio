@@ -97,10 +97,16 @@ export default function AdminChannelsPage() {
             </h1>
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href="/admin/proposals"
+              className="bg-blue text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-blue-deep transition-colors"
+            >
+              Inquiries / Proposals
+            </Link>
             <Link
               href="/admin/reports/new"
-              className="bg-blue text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-blue-deep transition-colors"
+              className="bg-white border border-border text-ink px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-surface-soft"
             >
               + Upload PDF Report
             </Link>

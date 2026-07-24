@@ -89,20 +89,22 @@ export default async function ReportDetailPage({ params }: Params) {
             </p>
           )}
 
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <a
               href={`${pdfUrl}?download=1`}
-              className="inline-flex items-center gap-2 rounded-full bg-blue px-5 py-3 text-[11px] font-bold uppercase tracking-wider text-white hover:bg-blue-deep"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-blue px-6 py-3 text-[11px] font-bold uppercase tracking-wider text-white hover:bg-blue-deep transition-colors shadow-xs outline-none focus-visible:ring-2 focus-visible:ring-blue/50"
             >
-              <Download className="size-4" /> Download PDF
+              <Download className="size-4 shrink-0 stroke-current" />
+              <span>Download PDF</span>
             </a>
             <a
               href={pdfUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-full border border-border bg-white px-5 py-3 text-[11px] font-bold uppercase tracking-wider text-ink hover:border-blue"
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-border bg-white px-6 py-3 text-[11px] font-bold uppercase tracking-wider text-ink hover:border-blue transition-colors outline-none focus-visible:ring-2 focus-visible:ring-blue/50"
             >
-              <ExternalLink className="size-4" /> Open in new tab
+              <ExternalLink className="size-4 shrink-0 stroke-current" />
+              <span>Open in new tab</span>
             </a>
           </div>
         </Container>
@@ -232,30 +234,60 @@ function MetricsGrid({ report }: { report: AnalyticsReport }) {
 
 function PdfViewer({ url, title }: { url: string; title: string }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-border bg-surface-soft">
-      <object
-        data={url}
-        type="application/pdf"
-        aria-label={`PDF viewer for ${title}`}
-        className="block h-[80vh] min-h-[560px] w-full"
-      >
-        <div className="p-10 text-center">
-          <p className="font-heading text-sm font-bold text-ink">
-            The report preview could not be loaded.
-          </p>
-          <p className="mt-2 text-xs text-body">
-            You can still download the PDF or open it in a new tab.
-          </p>
-          <a
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-4 inline-flex items-center gap-2 rounded-full border border-border bg-white px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-ink hover:border-blue"
-          >
-            Open PDF
-          </a>
-        </div>
-      </object>
+    <>
+      {/*
+       * Desktop / mouse-driven viewers get the inline preview. iOS Safari
+       * doesn't render `<object type="application/pdf">` inline at all, and
+       * on Android Chrome the inline preview is a poor experience on small
+       * screens — a full-height iframe that scrolls independently of the
+       * page. `(hover: hover) and (pointer: fine)` reliably distinguishes
+       * both cases.
+       */}
+      <div className="hidden overflow-hidden rounded-2xl border border-border bg-surface-soft [@media(hover:hover)_and_(pointer:fine)]:block">
+        <object
+          data={url}
+          type="application/pdf"
+          aria-label={`PDF viewer for ${title}`}
+          className="block h-[80vh] min-h-[560px] w-full"
+        >
+          <PdfFallbackCard url={url} />
+        </object>
+      </div>
+
+      {/* Touch devices: prominent open/download card instead of a broken iframe. */}
+      <div className="block [@media(hover:hover)_and_(pointer:fine)]:hidden">
+        <PdfFallbackCard url={url} />
+      </div>
+    </>
+  );
+}
+
+function PdfFallbackCard({ url }: { url: string }) {
+  return (
+    <div className="rounded-2xl border border-border bg-white p-8 text-center shadow-sm">
+      <p className="font-heading text-base font-bold text-ink">
+        The full report is in the PDF file.
+      </p>
+      <p className="mx-auto mt-2 max-w-[38ch] text-xs text-body">
+        Inline PDF preview isn&apos;t reliable on mobile browsers. Open it in a new
+        tab or download for offline reading.
+      </p>
+      <div className="mt-5 flex flex-wrap justify-center gap-3">
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 rounded-full bg-blue px-5 py-3 text-[11px] font-bold uppercase tracking-wider text-white hover:bg-blue-deep"
+        >
+          <ExternalLink className="size-4" /> Open PDF
+        </a>
+        <a
+          href={`${url}?download=1`}
+          className="inline-flex items-center gap-2 rounded-full border border-border bg-white px-5 py-3 text-[11px] font-bold uppercase tracking-wider text-ink hover:border-blue"
+        >
+          <Download className="size-4" /> Download
+        </a>
+      </div>
     </div>
   );
 }

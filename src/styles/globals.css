@@ -79,6 +79,11 @@
 html {
   /* Lenis owns scrolling; native smooth would fight it. */
   scroll-behavior: auto;
+  /* iOS Safari otherwise inflates text after orientation change. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* Match body — a rogue transformed child could otherwise push document width. */
+  overflow-x: clip;
 }
 
 body {
@@ -88,6 +93,22 @@ body {
   -webkit-font-smoothing: antialiased;
   /* Belt-and-braces against §28's "no horizontal overflow" rule. */
   overflow-x: clip;
+  /* Belongs on <body>, not <html>, to keep drawer/modal fixed positioning stable. */
+  min-height: 100dvh;
+}
+
+/*
+ * Any editable input rendered at < 16px triggers iOS Safari's auto-zoom on
+ * focus, and the page never zooms back out cleanly. Restore the desktop
+ * visual size above the mobile breakpoint; below it, force a comfortable
+ * touch size. Checkbox/radio are exempt — their font-size doesn't affect UX.
+ */
+@media (max-width: 767px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  textarea,
+  select {
+    font-size: max(16px, 1rem);
+  }
 }
 
 h1,
@@ -112,7 +133,7 @@ p {
 :focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
-  border-radius: 4px;
+  border-radius: inherit;
 }
 
 /* Lenis requires this to take over the scroll container. */
@@ -175,6 +196,46 @@ html.lenis body {
   border-radius: 9999px;
   pointer-events: none;
   will-change: transform;
+}
+
+/*
+ * Safe-area padding helpers. `max(<base>, env())` keeps devices without a
+ * notch from getting extra whitespace — the base padding still applies.
+ */
+@utility pt-safe {
+  padding-top: max(16px, env(safe-area-inset-top));
+}
+
+@utility pb-safe {
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
+
+@utility pl-safe {
+  padding-left: max(16px, env(safe-area-inset-left));
+}
+
+@utility pr-safe {
+  padding-right: max(16px, env(safe-area-inset-right));
+}
+
+/*
+ * Full-viewport height that respects the mobile browser UI. Old `100vh`
+ * measured the viewport including the address bar and made the drawer taller
+ * than the visible area. `100dvh` uses the *dynamic* viewport height, so the
+ * drawer resizes as the bar collapses. `100svh` is the fallback for a browser
+ * that supports svh/lvh but not dvh (Safari 15.4+). Static `100vh` at the
+ * end catches older Chromium.
+ */
+@utility min-h-dvh-safe {
+  min-height: 100vh;
+  min-height: 100svh;
+  min-height: 100dvh;
+}
+
+@utility h-dvh-safe {
+  height: 100vh;
+  height: 100svh;
+  height: 100dvh;
 }
 
 /* ==========================================================================

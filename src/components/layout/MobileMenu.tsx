@@ -10,6 +10,7 @@ import { navigation, primaryCta } from "@/content/navigation";
 import { socials } from "@/content/site";
 import { ArrowPillButton } from "@/components/ui/ArrowPillButton";
 import { InstagramIcon } from "@/components/ui/icons";
+import { useBodyScrollLock } from "@/lib/hooks/useBodyScrollLock";
 import { cn } from "@/lib/utils/cn";
 
 /**
@@ -47,18 +48,14 @@ export function MobileMenu() {
     setOpen(false);
   }
 
-  // Scroll lock. Lenis runs its own loop, so locking the body alone isn't enough.
+  // Body pinning via useBodyScrollLock — iOS Safari otherwise loses scroll
+  // position when the drawer closes. Lenis is stopped separately because it
+  // runs its own scroll loop on top of the native one.
+  useBodyScrollLock(open);
   useEffect(() => {
     if (!open) return;
-
     lenis?.stop();
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      lenis?.start();
-      document.body.style.overflow = previousOverflow;
-    };
+    return () => lenis?.start();
   }, [open, lenis]);
 
   // Escape to close + Tab focus trap.
@@ -122,11 +119,18 @@ export function MobileMenu() {
             role="dialog"
             aria-modal="true"
             aria-label="Site menu"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial={{ opacity: 0, pointerEvents: "none" }}
+            animate={{ opacity: 1, pointerEvents: "auto" }}
+            /*
+             * pointerEvents flips to "none" the moment exit starts, so the
+             * fading-out drawer stops intercepting taps even before framer
+             * finishes removing it from the DOM. Without this, taps land on a
+             * transparent full-viewport overlay for the exit duration and
+             * users appear to lose the ability to click anything.
+             */
+            exit={{ opacity: 0, pointerEvents: "none" }}
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="fixed inset-0 z-60 flex flex-col bg-background lg:hidden"
+            className="fixed inset-0 z-60 flex h-dvh-safe flex-col bg-background pt-safe pb-safe lg:hidden"
           >
             <div className="flex h-18 shrink-0 items-center justify-between px-5 sm:px-8">
               <span className="font-heading text-lg font-semibold text-foreground">

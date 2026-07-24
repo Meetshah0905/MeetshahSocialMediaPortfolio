@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import type { AnalyticsReport, ReportStatus } from "@/lib/storage/reportShared";
-import { CHANNEL_DISPLAY, formatReportWindow } from "@/lib/storage/reportShared";
+import { CHANNEL_DISPLAY, formatReportWindow, formatPdfFileSize } from "@/lib/storage/reportShared";
 
 type Filter = "all" | ReportStatus;
 
@@ -81,10 +81,16 @@ export default function AdminReportsPage() {
             </p>
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href="/admin/proposals"
+              className="rounded-lg bg-blue px-4 py-2 text-xs font-bold uppercase tracking-wider text-white hover:bg-blue-deep"
+            >
+              Inquiries / Proposals
+            </Link>
             <Link
               href="/admin/reports/new"
-              className="rounded-lg bg-blue px-4 py-2 text-xs font-bold uppercase tracking-wider text-white hover:bg-blue-deep"
+              className="rounded-lg border border-border bg-white px-4 py-2 text-xs font-bold uppercase tracking-wider text-ink hover:border-blue/30"
             >
               + Upload PDF Report
             </Link>
@@ -194,8 +200,7 @@ function ReportRow({
         )}
         {report.pdfStorageKey ? (
           <p className="text-[11px] text-muted">
-            PDF: {report.originalPdfFilename} ·{" "}
-            {(report.pdfSizeBytes / 1024 / 1024).toFixed(2)} MB
+            PDF: {report.originalPdfFilename} · {formatPdfFileSize(report.pdfSizeBytes)}
           </p>
         ) : (
           <p className="text-[11px] text-amber-700">No PDF uploaded yet.</p>
