@@ -13,6 +13,7 @@
     "test:e2e": "playwright test",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "knowledge:sync": "npx tsx scripts/sync-public-knowledge-to-gemini.ts",
     "check": "npm run lint && npm run typecheck && npm run test && npm run build"
   },
   "dependencies": {

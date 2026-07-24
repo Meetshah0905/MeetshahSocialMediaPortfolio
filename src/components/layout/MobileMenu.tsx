@@ -45,7 +45,9 @@ export function MobileMenu() {
   const panelRef = useRef<HTMLDivElement>(null);
   const lenis = useLenis();
 
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    void Promise.resolve().then(() => setMounted(true));
+  }, []);
 
   const close = useCallback(() => {
     setOpen(false);

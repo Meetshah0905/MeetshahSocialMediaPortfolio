@@ -1,0 +1,26 @@
+{
+  "source": "Meet Shah Verified Analytics Store",
+  "visibility": "PUBLIC",
+  "lastReviewedAt": "2026-07-24",
+  "officialUrl": "https://meetshah.in/analytics",
+  "publishedReports": [
+    {
+      "channel": "instagram-fitness",
+      "channelName": "Instagram Fitness",
+      "handle": "@meetsofficial",
+      "reportWindow": "30",
+      "title": "Instagram Fitness — 30-Day Verified Growth & Reach",
+      "summary": "Monthly channel performance snapshot detailing organic reel impressions, form video save rates, and audience demographics.",
+      "url": "https://meetshah.in/analytics?channel=instagram-fitness"
+    },
+    {
+      "channel": "instagram-finance",
+      "channelName": "Instagram Finance",
+      "handle": "@meet.fitfix",
+      "reportWindow": "30",
+      "title": "Instagram Finance — 30-Day Verified Insights Report",
+      "summary": "Monthly audience performance metrics covering personal finance reel retention, share rates, and retail investor engagement.",
+      "url": "https://meetshah.in/analytics?channel=instagram-finance"
+    }
+  ]
+}
