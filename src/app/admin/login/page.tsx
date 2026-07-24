@@ -43,13 +43,15 @@ function AdminLoginForm() {
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || "Authentication failed");
+        throw new Error(data.error || "Authentication failed.");
       }
 
-      router.push(from || "/admin");
-      router.refresh();
+      if (data.success) {
+        router.replace(data.redirectTo || data.redirectUrl || from || "/admin");
+        router.refresh();
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed");
+      setError(err instanceof Error ? err.message : "Authentication failed.");
     } finally {
       setLoading(false);
     }

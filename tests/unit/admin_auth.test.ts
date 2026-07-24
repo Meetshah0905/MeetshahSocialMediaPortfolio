@@ -4,6 +4,7 @@ import {
   createSessionToken,
   verifySessionToken,
   isAuthConfigured,
+  safeStringEqual,
 } from "@/lib/auth/session";
 
 describe("Admin Authentication & Session Security", () => {
@@ -70,5 +71,10 @@ describe("Admin Authentication & Session Security", () => {
     const token = await createSessionToken();
     const tampered = token + "tampered";
     expect(await verifySessionToken(tampered)).toBe(false);
+  });
+
+  it("safely compares strings of different lengths without throwing timingSafeEqual exception", () => {
+    expect(safeStringEqual("short", "muchlongerpasswordstring")).toBe(false);
+    expect(safeStringEqual("exactpassword", "exactpassword")).toBe(true);
   });
 });

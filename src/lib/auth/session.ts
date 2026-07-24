@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { timingSafeEqual } from "node:crypto";
 
 export const ADMIN_COOKIE_NAME = "meet_shah_admin_session";
 
@@ -6,15 +7,23 @@ export const ADMIN_COOKIE_NAME = "meet_shah_admin_session";
 const SESSION_TTL_MS = 2 * 60 * 60 * 1000;
 
 /**
- * Signed admin session.
- *
- * Cookie value is `<expiryEpochMs>.<hmacHex>` where the HMAC is computed over
- * the expiry with ANALYTICS_SESSION_SECRET. Forging a session requires the
- * secret.
- *
- * Web Crypto (crypto.subtle) is used so the same code verifies in both the
- * proxy (middleware) runtime and Node route handlers.
+ * Constant-time comparison helper that checks buffer lengths first.
+ * Prevents timingSafeEqual from throwing an exception when input string lengths differ.
  */
+export function safeStringEqual(
+  submittedValue: string,
+  configuredValue: string
+): boolean {
+  if (!submittedValue || !configuredValue) return false;
+  const submittedBuffer = Buffer.from(submittedValue, "utf8");
+  const configuredBuffer = Buffer.from(configuredValue, "utf8");
+
+  if (submittedBuffer.length !== configuredBuffer.length) {
+    return false;
+  }
+
+  return timingSafeEqual(submittedBuffer, configuredBuffer);
+}
 
 function getSessionSecret(): string | null {
   const secret = process.env.ANALYTICS_SESSION_SECRET;
@@ -38,8 +47,7 @@ async function hmacHex(secret: string, payload: string): Promise<string> {
 }
 
 /**
- * Constant-time-ish comparison: hash both sides with a fresh random key and
- * compare digests. Avoids leaking match position through string comparison.
+ * Constant-time-ish comparison for Web Crypto / edge runtime session verification.
  */
 async function digestsEqual(a: string, b: string): Promise<boolean> {
   const salt = crypto.getRandomValues(new Uint8Array(16)).join(",");
@@ -118,13 +126,15 @@ export async function validateAdminCredentials(
   const adminPassword = process.env.ADMIN_PASSWORD;
 
   if (!adminEmail || !adminPassword) return false;
-  if (!email || !password) return false;
+  if (!email || !password || typeof email !== "string" || typeof password !== "string") return false;
 
-  const [emailOk, passwordOk] = await Promise.all([
-    digestsEqual(email, adminEmail),
-    digestsEqual(password, adminPassword),
-  ]);
-  return emailOk && passwordOk;
+  const emailMatches = safeStringEqual(
+    email.trim().toLowerCase(),
+    adminEmail.trim().toLowerCase()
+  );
+  const passwordMatches = safeStringEqual(password, adminPassword);
+
+  return emailMatches && passwordMatches;
 }
 
 /** True when all three required authentication environment variables are configured on the server. */

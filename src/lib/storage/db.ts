@@ -522,13 +522,21 @@ export async function getLatestPublishedReport(
 
 // 4. Admin Audit Log
 export async function logAdminAction(log: AdminAuditLog): Promise<void> {
-  if (redis) {
-    await redis.set(`admin-audit:${log.id}`, log);
-    return;
+  try {
+    if (redis) {
+      await redis.set(`admin-audit:${log.id}`, log);
+      return;
+    }
+    if (isProductionWithoutRedis) {
+      console.warn("[admin-audit] Skipping filesystem audit log write in production (Upstash Redis not configured)");
+      return;
+    }
+    const list = readJSONFile<AdminAuditLog[]>(AUDIT_PATH, []);
+    list.push(log);
+    writeJSONFile(AUDIT_PATH, list);
+  } catch (err) {
+    console.error("[admin-audit] Failed to write audit log:", err);
   }
-  const list = readJSONFile<AdminAuditLog[]>(AUDIT_PATH, []);
-  list.push(log);
-  writeJSONFile(AUDIT_PATH, list);
 }
 
 export async function listAdminAuditLogs(): Promise<AdminAuditLog[]> {
