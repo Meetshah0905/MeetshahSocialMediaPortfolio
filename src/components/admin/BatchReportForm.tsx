@@ -178,11 +178,13 @@ export function BatchReportForm() {
 
   // Keep un-touched panel titles in sync with the current channel.
   useEffect(() => {
-    setPanels((prev) =>
-      prev.map((p) =>
-        p.titleTouched ? p : { ...p, title: suggestTitle(channel, p.window) },
-      ),
-    );
+    void Promise.resolve().then(() => {
+      setPanels((prev) =>
+        prev.map((p) =>
+          p.titleTouched ? p : { ...p, title: suggestTitle(channel, p.window) },
+        ),
+      );
+    });
   }, [channel]);
 
   const togglePanel = (window: ReportWindow) => {
@@ -874,7 +876,7 @@ function PanelCard({
               ))}
             </div>
             <p className="mt-2 text-[11px] text-muted">
-              Leave a field blank if you don't want it shown. Empty values render as no metric,
+              Leave a field blank if you don&apos;t want it shown. Empty values render as no metric,
               never as zero.
             </p>
           </div>

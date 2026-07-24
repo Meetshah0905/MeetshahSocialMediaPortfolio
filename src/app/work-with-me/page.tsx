@@ -117,7 +117,7 @@ export default function WorkWithMePage() {
   });
 
   return (
-    <div className="bg-white text-ink min-h-screen">
+    <div className="bg-white text-ink w-full">
       {/* 1. CINEMATIC HERO SECTION */}
       <section ref={scopeRef} className="relative w-full bg-[#050811] overflow-clip flex flex-col items-center select-none pt-2 pb-8 md:pt-4 md:pb-10">
         <HeroMaroonAtmosphere theme="blue" />

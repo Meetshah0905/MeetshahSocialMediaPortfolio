@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 
 export default function UGCPage() {
   return (
-    <div className="bg-[#f7f7f4] text-[#080b12] min-h-screen">
+    <div className="bg-[#f7f7f4] text-[#080b12] w-full">
       {/* 1. REBUILT ASYMMETRICAL UGC HERO SECTION */}
       <UGCHero />
 

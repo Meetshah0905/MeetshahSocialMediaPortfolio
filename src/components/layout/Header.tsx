@@ -40,10 +40,10 @@ export function Header() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 transition-all duration-300 ease-out",
+        "sticky top-0 z-[1000] w-full transition-all duration-300 ease-out",
         scrolled
-          ? "border-b border-slate-200/80 bg-white/90 backdrop-blur-xl shadow-xs"
-          : "border-b border-transparent bg-white/70 backdrop-blur-md",
+          ? "border-b border-slate-200/90 bg-white/95 backdrop-blur-xl shadow-xs"
+          : "border-b border-slate-200/50 bg-white/90 backdrop-blur-md",
       )}
     >
       <Container>
@@ -69,7 +69,7 @@ export function Header() {
                     href={item.href}
                     aria-current={active ? "page" : undefined}
                     className={cn(
-                      "group relative inline-flex min-h-10 items-center justify-center rounded-full px-3.5 py-1.5 text-xs xl:text-sm font-medium transition-all duration-250 ease-out",
+                      "group relative inline-flex min-h-10 items-center justify-center rounded-full px-2.5 xl:px-3.5 py-1.5 text-xs xl:text-sm font-medium transition-all duration-250 ease-out",
                       active
                         ? "text-blue-600 font-semibold"
                         : "text-slate-600 hover:text-slate-900 hover:-translate-y-[1.5px]",

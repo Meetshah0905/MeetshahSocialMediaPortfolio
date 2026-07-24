@@ -84,9 +84,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${sora.variable} ${inter.variable} ${caveat.variable} ${bebasNeue.variable} h-full antialiased`}
+      className={`${sora.variable} ${inter.variable} ${caveat.variable} ${bebasNeue.variable} antialiased`}
     >
-      <body className="flex min-h-full flex-col">
+      <body className="flex min-h-screen flex-col w-full bg-background text-body">
         {/* §29: the first focusable element on every page. */}
         <a
           href="#main"
@@ -101,7 +101,7 @@ export default function RootLayout({
               <RouteScrollManager />
             </Suspense>
             <Header />
-            <main id="main" className="flex-1">
+            <main id="main" className="flex-1 w-full">
               {children}
             </main>
             {/* Mounted once globally (§13); hides itself on admin routes. */}

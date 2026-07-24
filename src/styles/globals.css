@@ -72,29 +72,45 @@
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* Centralized z-index scale */
+:root {
+  --z-header: 1000;
+  --z-chat-launcher: 1100;
+  --z-chat-panel: 1150;
+  --z-menu-overlay: 1200;
+  --z-menu-drawer: 1210;
+  --z-modal: 1300;
+  --z-toast: 1400;
+}
+
 /* ==========================================================================
    BASE
    ========================================================================== */
 
 html {
+  width: 100%;
+  max-width: 100%;
+  min-height: 100%;
   /* Lenis owns scrolling; native smooth would fight it. */
   scroll-behavior: auto;
   /* iOS Safari otherwise inflates text after orientation change. */
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  /* Match body — a rogue transformed child could otherwise push document width. */
   overflow-x: clip;
+  overflow-y: auto;
 }
 
 body {
+  width: 100%;
+  max-width: 100%;
+  min-height: 100%;
+  margin: 0;
   background: var(--color-background);
   color: var(--color-body);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
-  /* Belt-and-braces against §28's "no horizontal overflow" rule. */
   overflow-x: clip;
-  /* Belongs on <body>, not <html>, to keep drawer/modal fixed positioning stable. */
-  min-height: 100dvh;
+  overflow-y: visible;
 }
 
 /*

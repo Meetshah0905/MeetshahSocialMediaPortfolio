@@ -25,7 +25,7 @@ export default function AdminProposalsPage() {
       const data = await res.json();
       setProposals(Array.isArray(data) ? data : []);
       setError(null);
-    } catch (err) {
+    } catch {
       setError("Could not load campaign proposals.");
     } finally {
       setLoading(false);

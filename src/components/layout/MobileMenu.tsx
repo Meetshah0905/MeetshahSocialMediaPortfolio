@@ -6,8 +6,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, m } from "motion/react";
 import { useLenis } from "lenis/react";
 import { Menu, X } from "lucide-react";
-import { navigation, primaryCta } from "@/content/navigation";
-import { socials } from "@/content/site";
+import { navigation } from "@/content/navigation";
+import { site, socials } from "@/content/site";
 import { ArrowPillButton } from "@/components/ui/ArrowPillButton";
 import { InstagramIcon } from "@/components/ui/icons";
 import { useBodyScrollLock } from "@/lib/hooks/useBodyScrollLock";
@@ -130,18 +130,22 @@ export function MobileMenu() {
              */
             exit={{ opacity: 0, pointerEvents: "none" }}
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="fixed inset-0 z-60 flex h-dvh-safe flex-col bg-background pt-safe pb-safe lg:hidden"
+            className="fixed inset-0 z-[1200] flex h-dvh-safe flex-col bg-background pt-safe pb-safe lg:hidden"
           >
             <div className="flex h-18 shrink-0 items-center justify-between px-5 sm:px-8">
-              <span className="font-heading text-lg font-semibold text-foreground">
-                Menu
-              </span>
+              <Link
+                href="/"
+                onClick={close}
+                className="font-heading text-lg font-bold tracking-tight text-foreground transition-colors hover:text-blue"
+              >
+                {site.name}
+              </Link>
               <button
                 type="button"
                 onClick={close}
                 autoFocus
                 aria-label="Close menu"
-                className="grid size-11 place-items-center rounded-full border border-border-strong text-foreground"
+                className="grid size-11 place-items-center rounded-full border border-border-strong text-foreground hover:bg-slate-100 transition-colors"
               >
                 <X aria-hidden className="size-5" />
               </button>
@@ -160,6 +164,7 @@ export function MobileMenu() {
                       <li key={item.href} className="pt-4">
                         <Link
                           href={item.href}
+                          onClick={close}
                           className="flex min-h-12 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-3.5 text-base font-semibold text-white shadow-md shadow-blue-500/20 active:scale-[0.98] transition-all"
                         >
                           <span>{item.label}</span>
@@ -173,12 +178,13 @@ export function MobileMenu() {
                     <li key={item.href}>
                       <Link
                         href={item.href}
+                        onClick={close}
                         aria-current={active ? "page" : undefined}
                         className={cn(
                           "flex min-h-12 items-center rounded-xl px-4 text-lg font-medium transition-all duration-200",
                           active
                             ? "bg-blue-50 text-blue-600 font-semibold border border-blue-200/70"
-                            : "text-slate-700 hover:bg-slate-100 hover:text-slate-900",
+                            : "text-slate-700 hover:bg-slate-100 hover:text-slate-900 active:bg-slate-100",
                         )}
                       >
                         {active && (
@@ -192,7 +198,7 @@ export function MobileMenu() {
               </ul>
 
               <div className="mt-6 border-t border-slate-200/80 pt-6">
-                <ArrowPillButton href="/work-with-me" size="lg" fullWidth>
+                <ArrowPillButton href="/work-with-me" size="lg" fullWidth onClick={close}>
                   Let&apos;s Collaborate
                 </ArrowPillButton>
               </div>
@@ -204,7 +210,8 @@ export function MobileMenu() {
                       href={social.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex min-h-11 items-center gap-2 text-body"
+                      onClick={close}
+                      className="inline-flex min-h-11 items-center gap-2 text-body hover:text-primary transition-colors"
                     >
                       <InstagramIcon aria-hidden className="size-4" />
                       {social.handle}

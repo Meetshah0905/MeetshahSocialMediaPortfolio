@@ -55,7 +55,7 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="bg-[#eef3fa] text-[#080b12] min-h-screen relative isolate overflow-hidden">
+    <div className="bg-[#eef3fa] text-[#080b12] relative isolate w-full">
       {/* Background Gaussian glow clouds */}
       <div className="absolute size-96 rounded-full bg-[#2e7bff]/10 blur-3xl -top-20 -left-20 -z-10" />
       <div className="absolute size-96 rounded-full bg-[#1e5fe0]/5 blur-3xl bottom-10 right-10 -z-10" />
@@ -153,7 +153,7 @@ export default function ContactPage() {
 
           {/* Right panel: Form or Submission Success */}
           <div className="lg:col-span-7 w-full">
-            <Card className="p-8 border border-[#0a0a0a]/10 bg-white shadow-2xl relative rounded-panel">
+            <Card className="p-5 sm:p-8 border border-[#0a0a0a]/10 bg-white shadow-soft relative rounded-2xl sm:rounded-panel">
               {submitted ? (
                 <div className="py-12 text-center flex flex-col items-center">
                   <div className="size-16 rounded-full bg-[#dce9ff] text-[#155de1] flex items-center justify-center border border-[#2e7bff]/10 mb-6">

@@ -158,7 +158,7 @@ export default function HomeClientPage({ profiles }: { profiles: HomeProfile[] }
   }, { scope: homeScope, dependencies: [loaderComplete] });
 
   return (
-    <div ref={homeScope} className="bg-white text-ink overflow-hidden relative">
+    <div ref={homeScope} className="bg-white text-ink relative w-full">
       {/* INITIAL LOADER */}
       <InitialLoader onComplete={() => setLoaderComplete(true)} />
 

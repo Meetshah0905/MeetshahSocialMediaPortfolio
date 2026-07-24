@@ -13,9 +13,9 @@ import { Heart, Compass, Target, Mail, MapPin } from "lucide-react";
 
 export default function AboutPage() {
   return (
-    <div className="bg-[#f7f7f4] text-[#080b12] min-h-screen">
+    <div className="bg-[#f7f7f4] text-[#080b12] w-full">
       {/* Hero / Lakeside Story */}
-      <Section tone="soft" spacing="default" className="pt-8 sm:pt-10 lg:pt-12 pb-12 lg:pb-16 bg-white border-b border-[#0a0a0a]/10 relative overflow-hidden">
+      <Section tone="soft" spacing="default" className="pt-8 sm:pt-10 lg:pt-12 pb-12 lg:pb-16 bg-white border-b border-[#0a0a0a]/10 relative">
         {/* Subtle background glow */}
         <div className="absolute top-1/4 -left-20 size-96 rounded-full bg-[#2e7bff]/5 blur-3xl pointer-events-none" />
         <div className="absolute bottom-10 right-10 size-96 rounded-full bg-[#2e7bff]/8 blur-3xl pointer-events-none" />

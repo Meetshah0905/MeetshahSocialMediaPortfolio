@@ -94,7 +94,7 @@ export default async function AnalyticsPage({
                 No analytics reports have been published yet.
               </h2>
               <p className="mt-2 text-xs text-body">
-                Reviewed insights PDFs will appear here as they're released.
+                Reviewed insights PDFs will appear here as they&apos;re released.
               </p>
             </Card>
           </Container>

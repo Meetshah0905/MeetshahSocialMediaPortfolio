@@ -433,7 +433,7 @@ export function ReportForm({
           ))}
         </div>
         <p className="mt-2 text-[11px] text-muted">
-          Leave a field blank if you don't want it shown. Empty values render as no metric,
+          Leave a field blank if you don&apos;t want it shown. Empty values render as no metric,
           never as zero.
         </p>
       </section>

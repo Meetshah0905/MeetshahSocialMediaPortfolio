@@ -37,12 +37,21 @@ export default function ChannelPerformanceSnapshot({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(true);
+    let active = true;
     fetch(`/api/reports?channel=${channel}&latest=true`)
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => setReport(data ?? null))
-      .catch(() => setReport(null))
-      .finally(() => setLoading(false));
+      .then((data) => {
+        if (active) setReport(data ?? null);
+      })
+      .catch(() => {
+        if (active) setReport(null);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, [channel]);
 
   if (loading) {

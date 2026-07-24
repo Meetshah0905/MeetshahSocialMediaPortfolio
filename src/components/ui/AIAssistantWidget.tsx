@@ -116,10 +116,10 @@ export function AIAssistantWidget() {
         <button
           ref={buttonRef}
           onClick={() => setIsOpen(true)}
-          className="fixed z-50 size-14 rounded-full bg-blue hover:bg-blue-deep text-white shadow-lift flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 group border border-blue-light/10"
+          className="fixed z-[1100] size-14 rounded-full bg-blue hover:bg-blue-deep text-white shadow-lift flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 group border border-blue-light/10"
           style={{
-            right: "max(1.5rem, env(safe-area-inset-right))",
-            bottom: "max(1.5rem, env(safe-area-inset-bottom))",
+            right: "max(1rem, env(safe-area-inset-right))",
+            bottom: "max(1rem, env(safe-area-inset-bottom))",
           }}
           aria-label="Open Analytics Assistant"
         >
@@ -134,7 +134,7 @@ export function AIAssistantWidget() {
       {isOpen && (
         <Card
           className="
-            fixed z-50 border border-border bg-white shadow-soft
+            fixed z-[1150] border border-border bg-white shadow-soft
             flex flex-col overflow-hidden transition-all duration-300
             inset-x-0 bottom-0 h-[85dvh] rounded-t-panel pb-[env(safe-area-inset-bottom)]
             sm:inset-auto sm:right-6 sm:bottom-6 sm:w-[400px] sm:h-[550px] sm:max-h-[80vh] sm:rounded-panel sm:pb-0

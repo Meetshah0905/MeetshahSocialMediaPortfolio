@@ -216,7 +216,7 @@ export default function FitnessClientPage({ initialFollowers }: FitnessClientPag
   });
 
   return (
-    <div ref={containerRef} className="bg-white text-ink min-h-screen relative overflow-x-hidden" onMouseMove={handleMouseMove}>
+    <div ref={containerRef} className="bg-white text-ink relative w-full" onMouseMove={handleMouseMove}>
       
       {/* 1. CINEMATIC HERO SECTION */}
       <section ref={scopeRef} className="relative w-full bg-[#050811] overflow-clip flex flex-col items-center select-none pt-2 pb-8 md:pt-4 md:pb-10">

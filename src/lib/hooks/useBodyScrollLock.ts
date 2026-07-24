@@ -16,6 +16,7 @@ import { useEffect } from "react";
 
 let lockCount = 0;
 let savedScrollY = 0;
+let savedPathname = "";
 let savedOverflow = "";
 let savedPosition = "";
 let savedTop = "";
@@ -26,6 +27,7 @@ function lock() {
   if (lockCount > 1) return;
 
   savedScrollY = window.scrollY;
+  savedPathname = typeof window !== "undefined" ? window.location.pathname : "";
   savedOverflow = document.body.style.overflow;
   savedPosition = document.body.style.position;
   savedTop = document.body.style.top;
@@ -41,12 +43,16 @@ function unlock() {
   lockCount = Math.max(0, lockCount - 1);
   if (lockCount > 0) return;
 
+  const currentPath = typeof window !== "undefined" ? window.location.pathname : "";
+
   document.body.style.overflow = savedOverflow;
   document.body.style.position = savedPosition;
   document.body.style.top = savedTop;
   document.body.style.width = savedWidth;
 
-  window.scrollTo(0, savedScrollY);
+  if (currentPath === savedPathname) {
+    window.scrollTo(0, savedScrollY);
+  }
 }
 
 export function useBodyScrollLock(active: boolean) {

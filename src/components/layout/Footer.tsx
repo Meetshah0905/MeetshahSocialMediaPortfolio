@@ -23,11 +23,11 @@ export function Footer() {
   };
 
   return (
-    <footer className="relative isolate mt-auto overflow-hidden bg-surface-alt">
+    <footer className="relative isolate mt-auto w-full h-auto min-h-0 overflow-visible bg-surface-alt">
       <BlurCloud preset="glow" />
 
-      <Container className="py-16 md:py-20">
-        <div className="grid gap-12 md:grid-cols-[1.6fr_1fr_1.2fr]">
+      <Container className="pt-12 pb-28 md:py-20">
+        <div className="grid gap-10 md:gap-12 md:grid-cols-[1.6fr_1fr_1.2fr]">
           {/* Identity */}
           <div>
             <p className="font-heading text-xl font-semibold text-foreground">
@@ -45,12 +45,12 @@ export function Footer() {
           {/* Sitemap — every public route, including those the desktop nav omits. */}
           <nav aria-label="Footer">
             <h2 className="text-sm font-medium text-foreground">Explore</h2>
-            <ul className="mt-4 flex flex-col gap-2.5">
+            <ul className="mt-4 flex flex-col gap-1">
               {footerNavigation.map((item) => (
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="text-sm text-body transition-colors hover:text-primary"
+                    className="inline-flex min-h-[44px] items-center text-sm text-body transition-colors hover:text-primary"
                   >
                     {item.label}
                   </Link>
@@ -62,14 +62,14 @@ export function Footer() {
           {/* Contact */}
           <div>
             <h2 className="text-sm font-medium text-foreground">Connect</h2>
-            <ul className="mt-4 flex flex-col gap-2.5">
+            <ul className="mt-4 flex flex-col gap-1">
               {socials.map((social) => (
                 <li key={social.href}>
                   <a
                     href={social.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-sm text-body transition-colors hover:text-primary"
+                    className="inline-flex min-h-[44px] items-center gap-2 text-sm text-body transition-colors hover:text-primary"
                   >
                     {renderSocialIcon(social.label)}
                     {social.handle}
@@ -80,20 +80,20 @@ export function Footer() {
               <li>
                 <a
                   href={`mailto:${site.email}`}
-                  className="inline-flex items-center gap-2 text-sm text-body transition-colors hover:text-primary"
+                  className="inline-flex min-h-[44px] items-center gap-2 text-sm text-body transition-colors hover:text-primary [overflow-wrap:anywhere] [word-break:break-word]"
                 >
-                  <Mail aria-hidden className="size-4" />
-                  {site.email}
+                  <Mail aria-hidden className="size-4 shrink-0" />
+                  <span>{site.email}</span>
                 </a>
               </li>
               {hasPhone && (
                 <li>
                   <a
                     href={`tel:${site.phone.replace(/\s/g, "")}`}
-                    className="inline-flex items-center gap-2 text-sm text-body transition-colors hover:text-primary"
+                    className="inline-flex min-h-[44px] items-center gap-2 text-sm text-body transition-colors hover:text-primary"
                   >
-                    <Phone aria-hidden className="size-4" />
-                    {site.phone}
+                    <Phone aria-hidden className="size-4 shrink-0" />
+                    <span>{site.phone}</span>
                   </a>
                 </li>
               )}
