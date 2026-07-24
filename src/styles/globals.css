@@ -114,6 +114,22 @@ body {
 }
 
 /*
+ * Mobile navigation drawer slide.
+ *
+ * Data-attribute driven so React only touches the attribute — not inline
+ * style — and the transition fires in a clean compositor step. See
+ * MobileMenu.tsx for the rationale.
+ */
+.mobile-nav-drawer {
+  translate: 100vw 0;
+  transition: translate 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.mobile-nav-drawer[data-open="true"] {
+  translate: 0 0;
+}
+
+/*
  * Any editable input rendered at < 16px triggers iOS Safari's auto-zoom on
  * focus, and the page never zooms back out cleanly. Restore the desktop
  * visual size above the mobile breakpoint; below it, force a comfortable

@@ -40,7 +40,11 @@ export function Header() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-[1000] w-full transition-all duration-300 ease-out",
+        // Mobile: genuinely fixed so it survives every stacking / overflow
+        // ancestor (Lenis + gsap virtualise scroll, and a `sticky` header can
+        // drop out of sight inside a wrapper that clips overflow). Desktop
+        // keeps the softer sticky behaviour with in-flow height.
+        "fixed top-0 left-0 right-0 lg:sticky lg:top-0 z-[1000] w-full transition-all duration-300 ease-out pt-safe",
         scrolled
           ? "border-b border-slate-200/90 bg-white/95 backdrop-blur-xl shadow-xs"
           : "border-b border-slate-200/50 bg-white/90 backdrop-blur-md",

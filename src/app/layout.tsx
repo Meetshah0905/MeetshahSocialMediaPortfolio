@@ -101,7 +101,14 @@ export default function RootLayout({
               <RouteScrollManager />
             </Suspense>
             <Header />
-            <main id="main" className="flex-1 w-full">
+            {/*
+             * `pt-18` (matches the h-18 header) is only needed while the
+             * header is `fixed`, i.e. below the lg breakpoint. Above lg the
+             * header returns to `sticky` and lives in normal flow, so we
+             * cancel the offset to avoid stacking two "header heights" of
+             * whitespace above the hero.
+             */}
+            <main id="main" className="flex-1 w-full pt-18 lg:pt-0">
               {children}
             </main>
             {/* Mounted once globally (§13); hides itself on admin routes. */}
