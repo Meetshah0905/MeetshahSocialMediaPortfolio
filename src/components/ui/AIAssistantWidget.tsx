@@ -17,8 +17,8 @@ import {
   Mail,
   ArrowUpRight,
   UserCheck,
+  Bot,
 } from "lucide-react";
-import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { useBodyScrollLock } from "@/lib/hooks/useBodyScrollLock";
 
@@ -47,38 +47,113 @@ const STARTER_QUESTIONS = [
   "How do I join the creator team?",
 ];
 
+/**
+ * Lightweight Markdown & Link Parser for clean formatted text rendering.
+ */
+function parseFormattedMarkdown(text: string) {
+  const lines = text.split("\n");
+
+  return lines.map((line, lineIdx) => {
+    if (!line.trim()) return <div key={lineIdx} className="h-2" />;
+
+    // Regex matching markdown links [label](url), bold **text**, and inline `code`
+    const tokenRegex = /(\[[^\]]+\]\([^)]+\)|\*\*[^*]+\*\*|`[^`]+`)/g;
+    const parts = line.split(tokenRegex);
+
+    const renderedParts = parts.map((part, partIdx) => {
+      if (part.startsWith("[") && part.includes("](") && part.endsWith(")")) {
+        const match = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+        if (match) {
+          const [, label, url] = match;
+          const isExternal = /^https?:\/\//.test(url);
+          if (isExternal) {
+            return (
+              <a
+                key={partIdx}
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:text-blue-800 font-semibold underline underline-offset-2 inline-flex items-center gap-0.5 transition-colors"
+              >
+                {label}
+                <ArrowUpRight className="size-3 inline shrink-0" />
+              </a>
+            );
+          }
+          return (
+            <Link
+              key={partIdx}
+              href={url}
+              className="text-blue-600 hover:text-blue-800 font-semibold underline underline-offset-2 transition-colors"
+            >
+              {label}
+            </Link>
+          );
+        }
+      }
+
+      if (part.startsWith("**") && part.endsWith("**")) {
+        return (
+          <strong key={partIdx} className="font-bold text-slate-900">
+            {part.slice(2, -2)}
+          </strong>
+        );
+      }
+
+      if (part.startsWith("`") && part.endsWith("`")) {
+        return (
+          <code
+            key={partIdx}
+            className="rounded bg-blue-50 px-1.5 py-0.5 font-mono text-[11px] font-semibold text-blue-700 border border-blue-200/60"
+          >
+            {part.slice(1, -1)}
+          </code>
+        );
+      }
+
+      return <span key={partIdx}>{part}</span>;
+    });
+
+    return (
+      <p key={lineIdx} className="mb-1.5 last:mb-0">
+        {renderedParts}
+      </p>
+    );
+  });
+}
+
 function ActionCardDisplay({ card }: { card: ActionCardData }) {
   const isExternal = /^https?:\/\//.test(card.url);
 
   const getIcon = () => {
     switch (card.type) {
       case "meeting":
-        return <Calendar className="size-4 text-blue" />;
+        return <Calendar className="size-4 text-blue-600" />;
       case "report":
-        return <FileText className="size-4 text-blue" />;
+        return <FileText className="size-4 text-blue-600" />;
       case "video":
-        return <Video className="size-4 text-blue" />;
+        return <Video className="size-4 text-blue-600" />;
       case "campaign":
-        return <Briefcase className="size-4 text-blue" />;
+        return <Briefcase className="size-4 text-blue-600" />;
       case "creator_team":
-        return <Users className="size-4 text-blue" />;
+        return <Users className="size-4 text-blue-600" />;
       case "handoff":
-        return <UserCheck className="size-4 text-blue" />;
+        return <UserCheck className="size-4 text-blue-600" />;
       default:
-        return <Sparkles className="size-4 text-blue" />;
+        return <Sparkles className="size-4 text-blue-600" />;
     }
   };
 
   return (
-    <div className="mt-2.5 p-3.5 bg-surface-soft border border-border rounded-xl space-y-2 text-ink shadow-xs">
+    <div className="mt-3 p-3.5 bg-gradient-to-br from-slate-50 to-blue-50/40 border border-blue-100 rounded-2xl space-y-2.5 text-slate-900 shadow-sm transition-all hover:border-blue-200">
       <div className="flex items-center gap-2">
-        <div className="size-7 rounded-full bg-blue-pale text-blue flex items-center justify-center shrink-0">
+        <div className="size-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
           {getIcon()}
         </div>
         <h4 className="font-heading text-xs font-bold leading-snug">{card.title}</h4>
       </div>
 
-      <p className="text-[11px] text-body leading-relaxed">{card.description}</p>
+      <p className="text-xs text-slate-600 leading-relaxed">{card.description}</p>
 
       <div className="pt-1">
         {isExternal ? (
@@ -86,7 +161,7 @@ function ActionCardDisplay({ card }: { card: ActionCardData }) {
             href={card.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-full bg-blue px-4 py-1.5 text-[11px] font-bold text-white shadow-xs hover:bg-blue-deep transition-colors w-full sm:w-auto"
+            className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-full bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white shadow-md shadow-blue-500/20 hover:bg-blue-700 transition-all w-full sm:w-auto"
           >
             <span>{card.buttonText}</span>
             <ArrowUpRight className="size-3.5" />
@@ -94,7 +169,7 @@ function ActionCardDisplay({ card }: { card: ActionCardData }) {
         ) : (
           <Link
             href={card.url}
-            className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-full bg-blue px-4 py-1.5 text-[11px] font-bold text-white shadow-xs hover:bg-blue-deep transition-colors w-full sm:w-auto"
+            className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-full bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white shadow-md shadow-blue-500/20 hover:bg-blue-700 transition-all w-full sm:w-auto"
           >
             <span>{card.buttonText}</span>
             <ArrowUpRight className="size-3.5" />
@@ -107,42 +182,42 @@ function ActionCardDisplay({ card }: { card: ActionCardData }) {
 
 function HumanHandoffCard() {
   return (
-    <div className="mt-3 p-3.5 bg-blue/5 border border-blue/20 rounded-xl space-y-3">
+    <div className="mt-3 p-3.5 bg-blue-50/60 border border-blue-200/80 rounded-2xl space-y-3 shadow-xs">
       <div className="flex items-center gap-2">
-        <UserCheck className="size-4 text-blue shrink-0" />
-        <h4 className="font-heading text-xs font-bold text-ink">Human Contact & Collaboration Options</h4>
+        <UserCheck className="size-4 text-blue-600 shrink-0" />
+        <h4 className="font-heading text-xs font-bold text-slate-900">Human Contact & Collaboration</h4>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         <Link
           href="/contact?vertical=brand"
-          className="p-2.5 bg-white border border-border rounded-lg text-left hover:border-blue transition-colors flex items-center gap-2"
+          className="p-2.5 bg-white border border-slate-200/80 rounded-xl text-left hover:border-blue-500 hover:shadow-xs transition-all flex items-center gap-2"
         >
-          <Briefcase className="size-3.5 text-blue shrink-0" />
+          <Briefcase className="size-3.5 text-blue-600 shrink-0" />
           <div>
-            <span className="text-[11px] font-bold text-ink block">Campaign Proposal</span>
-            <span className="text-[9px] text-muted block">Brand deals & UGC</span>
+            <span className="text-[11px] font-bold text-slate-900 block">Campaign Proposal</span>
+            <span className="text-[9px] text-slate-500 block">Brand deals & UGC</span>
           </div>
         </Link>
 
         <Link
           href="/join-creator-team"
-          className="p-2.5 bg-white border border-border rounded-lg text-left hover:border-blue transition-colors flex items-center gap-2"
+          className="p-2.5 bg-white border border-slate-200/80 rounded-xl text-left hover:border-blue-500 hover:shadow-xs transition-all flex items-center gap-2"
         >
-          <Users className="size-3.5 text-blue shrink-0" />
+          <Users className="size-3.5 text-blue-600 shrink-0" />
           <div>
-            <span className="text-[11px] font-bold text-ink block">Join Creator Team</span>
-            <span className="text-[9px] text-muted block">Editors & Videographers</span>
+            <span className="text-[11px] font-bold text-slate-900 block">Join Creator Team</span>
+            <span className="text-[9px] text-slate-500 block">Editors & Videographers</span>
           </div>
         </Link>
       </div>
 
-      <div className="pt-1 flex justify-between items-center border-t border-blue/10 text-[10px]">
+      <div className="pt-1 flex justify-between items-center border-t border-blue-200/60 text-[11px]">
         <a
           href="mailto:editsbymks@gmail.com"
-          className="inline-flex items-center gap-1.5 font-bold text-blue hover:underline"
+          className="inline-flex items-center gap-1.5 font-semibold text-blue-600 hover:underline"
         >
-          <Mail className="size-3" />
+          <Mail className="size-3.5" />
           <span>editsbymks@gmail.com</span>
         </a>
       </div>
@@ -165,10 +240,17 @@ export function AIAssistantWidget() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => {
+  const scrollToBottom = () => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      scrollRef.current.scrollTo({
+        top: scrollRef.current.scrollHeight,
+        behavior: "smooth",
+      });
     }
+  };
+
+  useEffect(() => {
+    scrollToBottom();
   }, [messages, loading]);
 
   const [isMobile, setIsMobile] = useState(false);
@@ -265,16 +347,16 @@ export function AIAssistantWidget() {
         <button
           ref={buttonRef}
           onClick={() => setIsOpen(true)}
-          className="fixed z-[1100] size-14 rounded-full bg-blue hover:bg-blue-deep text-white shadow-lift flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 group border border-blue-light/10"
+          className="fixed z-[1100] size-14 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-xl shadow-blue-500/25 flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 group border border-white/20"
           style={{
-            right: "max(1rem, env(safe-area-inset-right))",
-            bottom: "max(1rem, env(safe-area-inset-bottom))",
+            right: "max(1.25rem, env(safe-area-inset-right))",
+            bottom: "max(1.25rem, env(safe-area-inset-bottom))",
           }}
           aria-label="Ask Meet AI Concierge"
         >
           <MessageSquare className="size-6 group-hover:rotate-6 transition-transform" />
-          <span className="absolute -top-1 -right-1 size-4 bg-danger rounded-full border-2 border-white flex items-center justify-center text-[7px] text-white font-bold">
-            AI
+          <span className="absolute -top-1 -right-1 size-4 bg-emerald-500 rounded-full border-2 border-white flex items-center justify-center shadow-xs">
+            <span className="size-1.5 bg-white rounded-full animate-ping" />
           </span>
         </button>
       )}
@@ -282,38 +364,46 @@ export function AIAssistantWidget() {
       {isOpen && (
         <Card
           className="
-            fixed z-[1150] border border-border bg-white shadow-soft
+            fixed z-[1150] border border-slate-200/90 bg-white shadow-2xl
             flex flex-col overflow-hidden transition-all duration-300
-            inset-x-0 bottom-0 h-[85dvh] rounded-t-panel pb-[env(safe-area-inset-bottom)]
-            sm:inset-auto sm:right-6 sm:bottom-6 sm:w-[420px] sm:h-[580px] sm:max-h-[82vh] sm:rounded-panel sm:pb-0
+            inset-x-0 bottom-0 h-[88dvh] rounded-t-3xl pb-[env(safe-area-inset-bottom)]
+            sm:inset-auto sm:right-6 sm:bottom-6 sm:w-[430px] sm:h-[600px] sm:max-h-[85vh] sm:rounded-3xl sm:pb-0
           "
         >
           {/* Header */}
-          <div className="bg-surface-blue p-4 border-b border-border flex justify-between items-center">
-            <div className="flex items-center gap-2 text-blue">
-              <Sparkles className="size-4 text-blue animate-pulse" />
+          <div className="shrink-0 bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 p-4 border-b border-slate-800 flex justify-between items-center text-white">
+            <div className="flex items-center gap-3">
+              <div className="size-9 rounded-xl bg-blue-600/30 border border-blue-400/30 flex items-center justify-center text-blue-400 shrink-0">
+                <Bot className="size-5" />
+              </div>
               <div>
-                <span className="font-heading text-xs font-bold text-ink block leading-none">
-                  Meet Shah AI Concierge
-                </span>
-                <span className="text-[9px] text-muted block mt-1 font-semibold uppercase tracking-wider">
-                  Official Creator Assistant
+                <div className="flex items-center gap-2">
+                  <span className="font-heading text-sm font-bold tracking-tight text-white block leading-tight">
+                    Meet Shah AI Concierge
+                  </span>
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[9px] font-semibold">
+                    <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    Online
+                  </span>
+                </div>
+                <span className="text-[10px] text-slate-400 block mt-0.5 font-medium">
+                  Official Creator Portfolio Assistant
                 </span>
               </div>
             </div>
             <button
               onClick={() => setIsOpen(false)}
-              className="size-8 rounded-full border border-border flex items-center justify-center text-ink hover:bg-surface-soft transition-colors"
+              className="size-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-slate-300 hover:text-white transition-colors"
               aria-label="Close Concierge"
             >
               <X className="size-4" />
             </button>
           </div>
 
-          {/* Messages window */}
+          {/* Messages window — Clean overflow with HIDDEN scrollbar */}
           <div
             ref={scrollRef}
-            className="flex-1 overflow-y-auto p-4 space-y-4 bg-surface-soft/40 scrollbar-none"
+            className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 bg-slate-50/50 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             {messages.map((m, idx) => {
               const isUser = m.role === "user";
@@ -324,16 +414,15 @@ export function AIAssistantWidget() {
                 >
                   <div
                     className={`
-                      p-3.5 rounded-xl text-xs leading-relaxed max-w-[88%]
+                      p-3.5 sm:p-4 rounded-2xl text-xs sm:text-[13px] leading-relaxed max-w-[88%] shadow-xs
                       ${
                         isUser
-                          ? "bg-blue text-white shadow-xs"
-                          : "bg-white text-ink border border-border shadow-xs"
+                          ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-br-xs shadow-md shadow-blue-500/15"
+                          : "bg-white text-slate-800 border border-slate-200/80 rounded-bl-xs"
                       }
                     `}
-                    style={{ whiteSpace: "pre-line" }}
                   >
-                    {m.content}
+                    {parseFormattedMarkdown(m.content)}
                   </div>
 
                   {m.card && <ActionCardDisplay card={m.card} />}
@@ -343,21 +432,21 @@ export function AIAssistantWidget() {
             })}
 
             {loading && (
-              <div className="flex justify-start items-center gap-2 p-2.5 bg-white border border-border rounded-lg max-w-[220px] text-xs text-muted shadow-xs">
-                <Loader2 className="size-3.5 animate-spin text-blue" />
-                <span>Checking verified knowledge...</span>
+              <div className="flex justify-start items-center gap-2 p-3 bg-white border border-slate-200/80 rounded-2xl max-w-[230px] text-xs text-slate-500 shadow-xs">
+                <Loader2 className="size-4 animate-spin text-blue-600" />
+                <span className="font-medium">Checking verified knowledge...</span>
               </div>
             )}
           </div>
 
           {/* Suggested Starter Questions */}
           {messages.length === 1 && (
-            <div className="p-3 bg-white border-t border-border flex gap-2 overflow-x-auto scrollbar-none">
+            <div className="shrink-0 p-3 bg-white border-t border-slate-100 flex gap-2 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {STARTER_QUESTIONS.map((q) => (
                 <button
                   key={q}
                   onClick={() => handleSend(q)}
-                  className="shrink-0 bg-surface-soft hover:bg-blue-pale/40 border border-border rounded-full px-3 py-1.5 text-[10px] font-semibold text-body transition-colors"
+                  className="shrink-0 bg-slate-100 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200/80 border border-slate-200/60 rounded-full px-3 py-1.5 text-[11px] font-medium text-slate-700 transition-all"
                 >
                   {q}
                 </button>
@@ -366,30 +455,32 @@ export function AIAssistantWidget() {
           )}
 
           {/* Input row */}
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSend(input);
-            }}
-            className="p-3 bg-white border-t border-border flex gap-2 items-center"
-          >
-            <input
-              type="text"
-              placeholder="Ask about fitness, finance, UGC or book a meeting..."
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              className="flex-1 border border-border px-3.5 py-2.5 rounded-lg text-base sm:text-xs bg-surface-soft focus:outline-none focus:border-blue text-ink"
-              disabled={loading}
-            />
-            <Button
-              type="submit"
-              disabled={!input.trim() || loading}
-              className="bg-blue hover:bg-blue-deep text-white shrink-0 size-9 rounded-lg flex items-center justify-center p-0"
-              aria-label="Send query"
+          <div className="shrink-0 p-3 bg-white border-t border-slate-100">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSend(input);
+              }}
+              className="bg-slate-100/80 border border-slate-200 focus-within:border-blue-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-500/20 rounded-2xl p-1.5 flex items-center gap-2 transition-all"
             >
-              <Send className="size-4" />
-            </Button>
-          </form>
+              <input
+                type="text"
+                placeholder="Ask about fitness, finance, UGC or book a meeting..."
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                className="flex-1 bg-transparent px-3 py-1.5 text-xs sm:text-xs focus:outline-none text-slate-800 placeholder:text-slate-400"
+                disabled={loading}
+              />
+              <button
+                type="submit"
+                disabled={!input.trim() || loading}
+                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:opacity-40 disabled:hover:from-blue-600 disabled:hover:to-blue-700 text-white shrink-0 size-9 rounded-xl flex items-center justify-center transition-all shadow-md shadow-blue-500/20"
+                aria-label="Send message"
+              >
+                <Send className="size-4" />
+              </button>
+            </form>
+          </div>
         </Card>
       )}
     </>
