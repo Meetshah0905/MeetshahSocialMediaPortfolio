@@ -11,6 +11,8 @@ import {
 } from "@/lib/storage/db";
 import { isPeriodValid } from "@/lib/storage/reports";
 import { deleteStoredBlob } from "@/lib/storage/pdfBlob";
+import { deleteReportFromStorage } from "@/lib/storage/supabaseStorage";
+import { logReportAudit } from "@/lib/storage/auditLog";
 
 type Params = { params: Promise<{ reportId: string }> };
 
@@ -127,9 +129,11 @@ export async function DELETE(request: NextRequest, { params }: Params) {
 
     if (existing.pdfStorageKey) {
       await deleteStoredBlob(existing.pdfStorageKey);
+      await deleteReportFromStorage(existing.pdfStorageKey);
     }
     if (existing.coverImageStorageKey) {
       await deleteStoredBlob(existing.coverImageStorageKey);
+      await deleteReportFromStorage(existing.coverImageStorageKey);
     }
     await deleteReport(existing.id);
 
@@ -140,6 +144,12 @@ export async function DELETE(request: NextRequest, { params }: Params) {
       entityType: "REPORT",
       entityId: existing.id,
       createdAt: new Date().toISOString(),
+    });
+
+    await logReportAudit("deleted", existing.id, "admin", {
+      title: existing.title,
+      channel: existing.channel,
+      pdfStorageKey: existing.pdfStorageKey,
     });
 
     return NextResponse.json({ success: true });

@@ -9,6 +9,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Suspense } from "react";
 import { RouteScrollManager } from "@/components/navigation/RouteScrollManager";
 import { AIAssistantWidget } from "@/components/ui/AIAssistantWidget";
+import { CalEmbed } from "@/components/ui/CalEmbed";
 
 /**
  * Fonts are self-hosted by next/font at build time — no third-party request at
@@ -113,6 +114,7 @@ export default function RootLayout({
             </main>
             {/* Mounted once globally (§13); hides itself on admin routes. */}
             <AIAssistantWidget />
+            <CalEmbed />
             <Footer />
           </SmoothScrollProvider>
         </MotionProvider>

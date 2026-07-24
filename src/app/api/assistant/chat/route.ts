@@ -4,6 +4,8 @@ import { checkRateLimit } from "@/lib/security/rateLimit";
 import { MEET_ASSISTANT_SYSTEM_PROMPT } from "@/ai/meet-assistant-system-prompt";
 import { classifyIntent } from "@/ai/intent-router";
 import { executeAssistantTool, type ToolActionCard } from "@/ai/assistant-tools";
+import { getPublishedCreatorMetrics } from "@/lib/storage/db";
+import { YOUTUBE_CHANNEL } from "@/config/youtube";
 
 /**
  * Server-side AI Assistant Chat Endpoint (§1).
@@ -104,13 +106,39 @@ export async function POST(request: NextRequest) {
       };
     }
 
-    // 4. Execute Knowledge Search Tool for background context
+    // 4. Fetch Live Database Channel Metrics (§3, §10, §11, §18)
+    const liveMetrics = await getPublishedCreatorMetrics();
+    const liveMetricsContext = `
+Live Verified Website Channel Metrics (DATABASE SOURCE):
+- Instagram Fitness (@meetsofficial): ${liveMetrics.instagramFitness.exact.toLocaleString()} Followers (${liveMetrics.instagramFitness.compact})
+- Instagram Finance (@meet.fitfix): ${liveMetrics.instagramFinance.exact.toLocaleString()} Followers (${liveMetrics.instagramFinance.compact})
+- YouTube Channel: ${YOUTUBE_CHANNEL.name} (${YOUTUBE_CHANNEL.handle}) — ${liveMetrics.youtubeMain.exact.toLocaleString()} Subscribers (${liveMetrics.youtubeMain.compact})
+  Canonical Channel URL: ${YOUTUBE_CHANNEL.channelUrl}
+  Shorts URL: ${YOUTUBE_CHANNEL.shortsUrl}
+  Videos URL: ${YOUTUBE_CHANNEL.videosUrl}
+  Playlists URL: ${YOUTUBE_CHANNEL.playlistsUrl}
+- Combined Community: ${liveMetrics.combinedCommunity.exact.toLocaleString()} Total Audience (${liveMetrics.combinedCommunity.compact})
+`;
+
+    if (!defaultCard && (userText.toLowerCase().includes("youtube") || userText.toLowerCase().includes("subscriber") || userText.toLowerCase().includes("shorts"))) {
+      defaultCard = {
+        type: "page",
+        title: `${YOUTUBE_CHANNEL.name} (${YOUTUBE_CHANNEL.handle})`,
+        description: `${liveMetrics.youtubeMain.compact} Subscribers • Shorts + Long-form videos`,
+        buttonText: "Explore YouTube",
+        url: "/youtube",
+      };
+    }
+
+    // 5. Execute Knowledge Search Tool for background context
     const knowledgeSearch = await executeAssistantTool("search_public_knowledge", { query: userText });
     const knowledgeContext = JSON.stringify(knowledgeSearch.data);
 
     const fullSystemInstruction = `${MEET_ASSISTANT_SYSTEM_PROMPT}
 
 Classified User Intent: ${intent}
+
+${liveMetricsContext}
 
 Relevant Verified Public Knowledge:
 ${knowledgeContext}

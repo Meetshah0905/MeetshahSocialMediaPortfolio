@@ -154,8 +154,8 @@ export function HeroMaroonAtmosphere({ theme = "maroon" }: HeroAtmosphereProps) 
         }
       />
 
-      {/* 6. Floating Micro-particles / Ambient Accent Points */}
-      <div className="absolute inset-0 z-0 opacity-25 pointer-events-none">
+      {/* 6. Floating Micro-particles / Ambient Accent Points (Desktop only §1) */}
+      <div className="hidden md:block absolute inset-0 z-0 opacity-25 pointer-events-none">
         <div
           className={
             isMaroon

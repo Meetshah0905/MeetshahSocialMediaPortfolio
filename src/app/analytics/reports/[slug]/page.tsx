@@ -191,19 +191,26 @@ export default async function ReportDetailPage({ params }: Params) {
 function MetricsGrid({ report }: { report: AnalyticsReport }) {
   const m = report.metrics ?? {};
   const items: Array<{ label: string; value: number; suffix?: string }> = [];
-  if (m.audienceEnd != null) items.push({ label: "Audience", value: m.audienceEnd });
-  if (m.audienceGrowth != null)
-    items.push({ label: "Audience growth", value: m.audienceGrowth });
-  if (m.views != null) items.push({ label: "Views", value: m.views });
+  if (m.audienceEnd != null) items.push({ label: "Audience / Subs", value: m.audienceEnd });
+  if (m.subscribersGained != null) items.push({ label: "Subs Gained", value: m.subscribersGained });
+  if (m.audienceGrowth != null) items.push({ label: "Audience growth", value: m.audienceGrowth });
+  if (m.views != null) items.push({ label: "Total Views", value: m.views });
+  if (m.shortsViews != null) items.push({ label: "Shorts Views", value: m.shortsViews });
+  if (m.longFormViews != null) items.push({ label: "Long-form Views", value: m.longFormViews });
   if (m.reach != null) items.push({ label: "Reach", value: m.reach });
   if (m.impressions != null) items.push({ label: "Impressions", value: m.impressions });
   if (m.interactions != null) items.push({ label: "Interactions", value: m.interactions });
+  if (m.likes != null) items.push({ label: "Likes", value: m.likes });
+  if (m.comments != null) items.push({ label: "Comments", value: m.comments });
+  if (m.shares != null) items.push({ label: "Shares", value: m.shares });
+  if (m.publishedShorts != null) items.push({ label: "Shorts Published", value: m.publishedShorts });
+  if (m.publishedLongFormVideos != null) items.push({ label: "Videos Published", value: m.publishedLongFormVideos });
   if (m.engagementRate != null)
     items.push({ label: "Engagement", value: m.engagementRate, suffix: "%" });
   if (m.watchTimeMinutes != null)
     items.push({ label: "Watch time (min)", value: m.watchTimeMinutes });
   if (m.averageViewDurationSeconds != null)
-    items.push({ label: "Avg view duration (s)", value: m.averageViewDurationSeconds });
+    items.push({ label: "Avg duration (s)", value: m.averageViewDurationSeconds });
 
   if (items.length === 0) return null;
 

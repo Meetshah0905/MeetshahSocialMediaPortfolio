@@ -43,5 +43,36 @@
     "createdAt": "2026-07-23T18:08:41.463Z",
     "updatedAt": "2026-07-23T18:08:47.402Z",
     "pdfSha256": "ad3badf2d53cf8f3b44395d62aa5eb6080f06435f5247fde470e17a555ed6099"
+  },
+  {
+    "id": "report-yt-test90",
+    "slug": "meet-shah-youtube-90-days-test",
+    "channel": "youtube-main",
+    "reportWindow": "90",
+    "periodStart": "2026-05-01",
+    "periodEnd": "2026-07-29",
+    "title": "YouTube 90-Day Growth & Shorts Performance Snapshot",
+    "executiveSummary": "Verified 90-day performance report across YouTube Shorts and long-form videos.",
+    "highlights": [
+      "Shorts reached 500K views",
+      "Subscribers grew by 1,200"
+    ],
+    "metrics": {
+      "subscribersStart": 18500,
+      "subscribersEnd": 19700,
+      "subscribersGained": 12000,
+      "shortsViews": 450000,
+      "longFormViews": 120000,
+      "watchTimeMinutes": 25000
+    },
+    "pdfUrl": "/api/reports/report-yt-test90/pdf",
+    "pdfStorageKey": "youtube-main/2026/90-days/meet-shah-youtube-90-days-test.pdf",
+    "originalPdfFilename": "meet-shah-youtube-90-days-test.pdf",
+    "pdfSizeBytes": 1542000,
+    "status": "published",
+    "publishedAt": "2026-07-24T17:28:13.164Z",
+    "createdByAdminId": "admin",
+    "createdAt": "2026-07-24T17:28:13.164Z",
+    "updatedAt": "2026-07-24T17:28:13.164Z"
   }
 ]

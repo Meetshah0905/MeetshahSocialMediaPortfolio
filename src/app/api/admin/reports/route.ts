@@ -35,6 +35,17 @@ const metricsSchema = z
     engagementRate: z.number().min(0).max(100).optional(),
     watchTimeMinutes: z.number().nonnegative().optional(),
     averageViewDurationSeconds: z.number().nonnegative().optional(),
+    subscribersStart: z.number().nonnegative().optional(),
+    subscribersEnd: z.number().nonnegative().optional(),
+    subscribersGained: z.number().nonnegative().optional(),
+    subscribersLost: z.number().nonnegative().optional(),
+    shortsViews: z.number().nonnegative().optional(),
+    longFormViews: z.number().nonnegative().optional(),
+    likes: z.number().nonnegative().optional(),
+    comments: z.number().nonnegative().optional(),
+    shares: z.number().nonnegative().optional(),
+    publishedShorts: z.number().nonnegative().optional(),
+    publishedLongFormVideos: z.number().nonnegative().optional(),
   })
   .partial()
   .optional();

@@ -1,11 +1,11 @@
 export type CreatorPillar = {
-  id: "fitness" | "finance" | "ugc";
+  id: "fitness" | "finance" | "ugc" | "youtube";
   eyebrow: string;
   title: string;
   description: string;
   image: string;
   imageAlt: string;
-  metricKey?: "instagram_fitness" | "instagram_finance";
+  metricKey?: "instagram_fitness" | "instagram_finance" | "youtube_main";
   metricLabel?: string;
   metricFallback?: string;
   href: string;
@@ -50,5 +50,19 @@ export const creatorPillarsData: CreatorPillar[] = [
     metricFallback: "Creator-led brand content",
     href: "/ugc",
     cta: "Explore UGC",
+  },
+  {
+    id: "youtube",
+    eyebrow: "YOUTUBE",
+    title: "Short-form attention. Long-form depth.",
+    description:
+      "YouTube Shorts and long-form videos explaining fitness, finance, and creator topics.",
+    image: "/images/meet/Meet_Shah_fitness_portrait_2K_202607190204.jpeg",
+    imageAlt: "Meet Shah YouTube content creator",
+    metricKey: "youtube_main",
+    metricLabel: "Subscribers",
+    metricFallback: "19.7K Subscribers",
+    href: "/youtube",
+    cta: "Explore YouTube",
   },
 ];

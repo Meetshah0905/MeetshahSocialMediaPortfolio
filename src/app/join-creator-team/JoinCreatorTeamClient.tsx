@@ -13,6 +13,7 @@ import {
   ArrowDown,
   Scissors,
   Camera,
+  Calendar,
 } from "lucide-react";
 import Image from "next/image";
 import { Container } from "@/components/ui/Container";
@@ -195,8 +196,8 @@ export function JoinCreatorTeamClient() {
                 </span>
               </div>
 
-              {/* Two Action Buttons */}
-              <div className="flex flex-wrap gap-4 items-center pt-2">
+              {/* Three Action Buttons including Cal.com Team Discussion */}
+              <div className="flex flex-wrap gap-3.5 items-center pt-2">
                 <button
                   type="button"
                   onClick={() => scrollToSection("roles")}
@@ -205,10 +206,22 @@ export function JoinCreatorTeamClient() {
                   <span>View Open Roles</span>
                   <ArrowDown className="size-4" />
                 </button>
+
+                <button
+                  type="button"
+                  data-cal-link="meet-shah-0905/creator-team-discussing"
+                  data-cal-namespace="creator-team-discussing"
+                  data-cal-config='{"layout":"month_view","useSlotsViewOnSmallScreen":"true"}'
+                  className="inline-flex items-center gap-2 rounded-full bg-blue/10 text-blue hover:bg-blue/20 border border-blue/30 px-5 py-3 text-xs sm:text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+                >
+                  <Calendar className="size-4" />
+                  <span>Schedule Team Discussion</span>
+                </button>
+
                 <button
                   type="button"
                   onClick={() => scrollToSection("process")}
-                  className="inline-flex items-center gap-2 rounded-full bg-white hover:bg-surface-soft text-ink border border-border px-6 py-3 text-xs sm:text-sm font-semibold shadow-xs transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+                  className="inline-flex items-center gap-2 rounded-full bg-white hover:bg-surface-soft text-ink border border-border px-5 py-3 text-xs sm:text-sm font-semibold shadow-xs transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
                 >
                   <span>How It Works</span>
                 </button>

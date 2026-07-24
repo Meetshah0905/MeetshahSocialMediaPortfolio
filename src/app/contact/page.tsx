@@ -8,7 +8,7 @@ import { ArrowPillButton } from "@/components/ui/ArrowPillButton";
 import { Button } from "@/components/ui/Button";
 import { site, socialUrls } from "@/content/site";
 import { contact } from "@/content/contact";
-import { Mail, CheckCircle2, MapPin } from "lucide-react";
+import { Mail, CheckCircle2, MapPin, Calendar } from "lucide-react";
 import { InstagramIcon, LinkedinIcon, TwitterIcon } from "@/components/ui/icons";
 
 export default function ContactPage() {
@@ -78,6 +78,24 @@ export default function ContactPage() {
             </p>
 
             <div className="space-y-4 w-full pt-4">
+              {/* Cal.com 60min Meeting Booking Trigger */}
+              <button
+                type="button"
+                data-cal-link="meet-shah-0905/60min"
+                data-cal-namespace="60min"
+                data-cal-config='{"layout":"month_view","useSlotsViewOnSmallScreen":"true"}'
+                className="flex items-center gap-3.5 p-4 bg-gradient-to-r from-blue/10 via-blue/5 to-white border border-blue/20 rounded-lg hover:border-blue/50 transition-all group shadow-xs w-full cursor-pointer text-left"
+              >
+                <div className="size-9 rounded-full bg-blue text-white flex items-center justify-center border border-blue/20 shrink-0">
+                  <Calendar className="size-4.5" />
+                </div>
+                <div className="text-left flex-1">
+                  <span className="text-[9px] font-bold text-blue uppercase tracking-wider block">1:1 Calendar</span>
+                  <span className="text-xs font-bold text-[#080b12] group-hover:text-blue transition-colors block mt-0.5">Book a 60-Min Meeting</span>
+                </div>
+                <span className="text-[10px] font-semibold bg-blue/10 text-blue px-2.5 py-1 rounded-full">Select Time →</span>
+              </button>
+
               <a
                 href={`mailto:${site.email}`}
                 className="flex items-center gap-3.5 p-4 bg-white border border-[#0a0a0a]/10 rounded-lg hover:border-blue/30 transition-all group shadow-xs"

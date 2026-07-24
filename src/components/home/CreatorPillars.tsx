@@ -42,8 +42,8 @@ export function CreatorPillars({ getProfileValue }: CreatorPillarsProps) {
           </div>
         </div>
 
-        {/* 3-Pillar Editorial Card Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 items-stretch">
+        {/* 4-Pillar Editorial Card Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
           {creatorPillarsData.map((pillar) => {
             const metricValue =
               pillar.metricKey && getProfileValue

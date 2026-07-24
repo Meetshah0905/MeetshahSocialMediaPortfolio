@@ -1,7 +1,9 @@
-import { searchPublicKnowledge, loadAllPublicKnowledge } from "./public-knowledge-retriever";
-import { listPlatformProfiles, listReports, CHANNEL_DISPLAY } from "@/lib/storage/db";
+import { searchPublicKnowledge } from "./public-knowledge-retriever";
+import { listPlatformProfiles, listReports, listYouTubeVideos, CHANNEL_DISPLAY } from "@/lib/storage/db";
+import type { ChannelSlug, ReportWindow } from "@/lib/storage/reportShared";
 import { recordUnansweredQuestion } from "@/lib/storage/unanswered";
 import { site, socialUrls } from "@/content/site";
+import { YOUTUBE_CHANNEL } from "@/config/youtube";
 
 export interface ToolActionCard {
   type: "video" | "report" | "page" | "meeting" | "campaign" | "creator_team" | "handoff";
@@ -40,7 +42,7 @@ export async function executeAssistantTool(
           channels: [
             { name: "Fitness", handle: "@meetsofficial", platform: "Instagram" },
             { name: "Finance", handle: "@meet.fitfix", platform: "Instagram" },
-            { name: "YouTube", handle: "Meet Shah", platform: "YouTube" },
+            { name: YOUTUBE_CHANNEL.name, handle: YOUTUBE_CHANNEL.handle, platform: "YouTube", channelUrl: YOUTUBE_CHANNEL.channelUrl },
           ],
         },
       };
@@ -49,14 +51,23 @@ export async function executeAssistantTool(
     case "get_current_channel_metrics": {
       const profiles = await listPlatformProfiles();
       const published = profiles.filter((p) => p.published || p.isPublished);
+
       return {
-        data: published.map((p) => ({
-          channel: p.displayName,
-          handle: p.handle,
-          metric: p.primaryMetric,
-          value: p.currentValue,
-          updatedAt: p.updatedAt,
-        })),
+        data: published.map((p) => {
+          const isYt = p.platform === "youtube" || p.slug === "youtube-main" || p.id === "youtube_main";
+          const count = p.manualAudienceOverride ?? p.manualAudienceCount ?? p.currentValue ?? p.currentAudienceCount ?? 0;
+          return {
+            channel: p.displayName,
+            platform: isYt ? "YouTube" : "Instagram",
+            displayName: p.displayName,
+            audienceLabel: isYt ? "Subscribers" : "Followers",
+            exact: count,
+            compact: count === 0 ? "0" : new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 }).format(count),
+            contentFormats: isYt ? ["YouTube Shorts", "Long-form YouTube videos"] : ["Reels", "Posts"],
+            updatedAt: p.updatedAt,
+            source: "Published website metrics",
+          };
+        }),
       };
     }
 
@@ -74,17 +85,29 @@ export async function executeAssistantTool(
     }
 
     case "list_published_reports": {
-      const reports = await listReports({ publishedOnly: true });
+      const channel = args.channel ? (String(args.channel) as ChannelSlug) : undefined;
+      const reportWindow = args.reportWindow ? (String(args.reportWindow) as ReportWindow) : undefined;
+
+      const reports = await listReports({
+        publishedOnly: true,
+        channel,
+        reportWindow,
+      });
+
       return {
         data: reports.map((r) => ({
           id: r.id,
           slug: r.slug,
           channel: CHANNEL_DISPLAY[r.channel]?.name ?? r.channel,
+          channelSlug: r.channel,
           window: r.reportWindow,
           title: r.title,
           summary: r.executiveSummary,
+          highlights: r.highlights,
+          metrics: r.metrics,
           period: `${r.periodStart} to ${r.periodEnd}`,
-          url: `/analytics/reports/${r.slug}`,
+          viewUrl: `/analytics/reports/${r.slug}`,
+          pdfDownloadUrl: `/api/reports/${r.id}/pdf?download=1`,
         })),
       };
     }
@@ -121,28 +144,30 @@ export async function executeAssistantTool(
 
     case "search_public_content": {
       const query = String(args.query ?? "").toLowerCase();
-      const all = loadAllPublicKnowledge();
-      const catalogue = all.find((i) => i.file.includes("07-content-catalogue"));
+      const format = String(args.format ?? "").toLowerCase();
 
-      let items: Array<{ title: string; category: string; platform: string; url: string }> = [];
-      if (catalogue) {
-        const lines = catalogue.content.split("\n").filter((l) => l.trim().startsWith("{"));
-        items = lines
-          .map((l) => {
-            try {
-              return JSON.parse(l);
-            } catch {
-              return null;
-            }
-          })
-          .filter(Boolean);
-      }
+      // Query real published YouTube videos from database
+      const dbVideos = await listYouTubeVideos({ publishedOnly: true });
+      const mappedDbVideos = dbVideos.map((v) => ({
+        id: v.id,
+        videoId: v.videoId,
+        title: v.title,
+        category: v.topic,
+        platform: "YouTube",
+        format: v.format,
+        url: v.videoUrl,
+        thumbnailUrl: v.thumbnailUrl,
+      }));
 
       const filtered = query
-        ? items.filter((i) => i.title.toLowerCase().includes(query) || i.category.toLowerCase().includes(query))
-        : items;
+        ? mappedDbVideos.filter((i) => i.title.toLowerCase().includes(query) || i.category.toLowerCase().includes(query))
+        : mappedDbVideos;
 
-      return { data: filtered.slice(0, 5) };
+      if (format) {
+        return { data: filtered.filter((i) => i.format === format).slice(0, 6) };
+      }
+
+      return { data: filtered.slice(0, 6) };
     }
 
     case "get_official_links": {
@@ -151,6 +176,10 @@ export async function executeAssistantTool(
           email: site.email,
           instagramFitness: socialUrls.instagramFitness,
           instagramFinance: socialUrls.instagramFinance,
+          youtubeChannel: YOUTUBE_CHANNEL.channelUrl,
+          youtubeShorts: YOUTUBE_CHANNEL.shortsUrl,
+          youtubeVideos: YOUTUBE_CHANNEL.videosUrl,
+          youtubePlaylists: YOUTUBE_CHANNEL.playlistsUrl,
           linkedin: socialUrls.linkedin,
           twitter: socialUrls.twitter,
         },
@@ -158,22 +187,7 @@ export async function executeAssistantTool(
     }
 
     case "get_meeting_booking_link": {
-      const bookingUrl = process.env.NEXT_PUBLIC_MEETING_BOOKING_URL;
-      if (!bookingUrl || !bookingUrl.trim()) {
-        return {
-          data: {
-            available: false,
-            message: "Meeting booking is temporarily unavailable. Please submit a collaboration proposal or email Meet directly.",
-          },
-          card: {
-            type: "campaign",
-            title: "Submit Collaboration Inquiry",
-            description: "Submit details about your campaign or proposal directly through the website form.",
-            buttonText: "Submit Proposal",
-            url: "/contact",
-          },
-        };
-      }
+      const bookingUrl = process.env.NEXT_PUBLIC_MEETING_BOOKING_URL || "https://cal.com/meet-shah-0905/60min";
 
       return {
         data: {
@@ -204,14 +218,18 @@ export async function executeAssistantTool(
     }
 
     case "get_creator_team_link": {
+      const creatorTeamBookingUrl = process.env.NEXT_PUBLIC_CREATOR_TEAM_BOOKING_URL || "https://cal.com/meet-shah-0905/creator-team-discussing";
       return {
-        data: { url: "/join-creator-team" },
+        data: {
+          url: "/join-creator-team",
+          bookingUrl: creatorTeamBookingUrl,
+        },
         card: {
           type: "creator_team",
           title: "Join Meet Shah's Creator Team",
-          description: "Apply for open video editing and videographer positions.",
-          buttonText: "View Creator Opportunities",
-          url: "/join-creator-team",
+          description: "Schedule a discussion call or view open video editing and videographer roles.",
+          buttonText: "Schedule Team Discussion",
+          url: creatorTeamBookingUrl,
         },
       };
     }

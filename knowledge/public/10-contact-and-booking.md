@@ -15,10 +15,16 @@ officialUrl: "https://meetshah.in/contact"
 - **Form URL**: https://meetshah.in/contact
 - **Best For**: Brand integration requests, sponsored Reels, long-form YouTube partnerships, and UGC campaign orders.
 
-## 3. 1:1 Meeting Booking Page
-- **Booking Page**: Available via `NEXT_PUBLIC_MEETING_BOOKING_URL` (e.g., https://cal.com/meetshah/30min)
-- **Best For**: 1:1 strategy consultations, campaign alignment calls, and prospective client discussions.
+## 3. 1:1 Social Media Strategy Meeting Booking (60-Min)
+- **Booking Link**: https://cal.com/meet-shah-0905/60min
+- **Cal Namespace**: `60min`
+- **Best For**: 60-minute 1:1 strategy consultations, social media brand alignment calls, and client discussions.
 
-## 4. Creator Team Applications
+## 4. Creator Team Discussion Meeting Booking
+- **Booking Link**: https://cal.com/meet-shah-0905/creator-team-discussing
+- **Cal Namespace**: `creator-team-discussing`
+- **Best For**: Video editors and videographers discussing team applications and production roles.
+
+## 5. Creator Team Applications Page
 - **Application URL**: https://meetshah.in/join-creator-team
 - **Best For**: Video editors, graphic designers, and videographers seeking to join Meet Shah's production team.

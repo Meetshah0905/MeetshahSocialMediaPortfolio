@@ -15,6 +15,7 @@ export const navigation: NavItem[] = [
   { label: "Fitness", href: "/fitness", inDesktopNav: true },
   { label: "Finance", href: "/finance", inDesktopNav: true },
   { label: "UGC", href: "/ugc", inDesktopNav: true },
+  { label: "YouTube", href: "/youtube", inDesktopNav: true },
   { label: "Analytics", href: "/analytics", inDesktopNav: true },
   { label: "About", href: "/about", inDesktopNav: true },
   { label: "Join Creator Team", href: "/join-creator-team", inDesktopNav: true },

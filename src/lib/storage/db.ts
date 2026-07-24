@@ -183,6 +183,7 @@ function makeSeedProfile(
   handle: string,
   url: string,
   primaryMetric: PlatformProfile["primaryMetric"],
+  initialCount = 0,
 ): PlatformProfile {
   const now = new Date().toISOString();
   return {
@@ -193,8 +194,8 @@ function makeSeedProfile(
     handle,
     url,
     primaryMetric,
-    currentValue: 0,
-    currentAudienceCount: 0,
+    currentValue: initialCount,
+    currentAudienceCount: initialCount,
     manualOverrideEnabled: false,
     manualAudienceCount: null,
     manualAudienceOverride: null,
@@ -203,8 +204,8 @@ function makeSeedProfile(
     effectiveAt: now,
     updatedAt: now,
     updatedBy: "system-seed",
-    published: false,
-    isPublished: false,
+    published: true,
+    isPublished: true,
     createdAt: now,
   };
 }
@@ -218,6 +219,7 @@ const SEED_PROFILES: PlatformProfile[] = [
     "@meetsofficial",
     "https://www.instagram.com/meetsofficial/",
     "followers",
+    12000,
   ),
   makeSeedProfile(
     "instagram_finance",
@@ -227,6 +229,7 @@ const SEED_PROFILES: PlatformProfile[] = [
     "@meet.fitfix",
     "https://www.instagram.com/meet.fitfix/",
     "followers",
+    15300,
   ),
   makeSeedProfile(
     "youtube_main",
@@ -236,8 +239,53 @@ const SEED_PROFILES: PlatformProfile[] = [
     "Meet Shah",
     "https://www.youtube.com/@meetshah",
     "subscribers",
+    19700,
   ),
 ];
+
+/**
+ * Central metrics loader for published creator metrics (§3).
+ * Calculates combined community dynamically.
+ */
+export async function getPublishedCreatorMetrics() {
+  const profiles = await listPlatformProfiles();
+  const published = profiles.filter((p) => p.published || p.isPublished);
+
+  const fitness = published.find((p) => p.slug === "instagram-fitness" || p.id === "instagram_fitness");
+  const finance = published.find((p) => p.slug === "instagram-finance" || p.id === "instagram_finance");
+  const youtube = published.find((p) => p.slug === "youtube-main" || p.id === "youtube_main");
+
+  const fitVal = fitness ? getEffectiveAudienceCount(fitness) : 12000;
+  const finVal = finance ? getEffectiveAudienceCount(finance) : 15300;
+  const ytVal = youtube ? getEffectiveAudienceCount(youtube) : 19700;
+
+  const combined = fitVal + finVal + ytVal;
+
+  return {
+    instagramFitness: {
+      exact: fitVal,
+      compact: formatCompactCount(fitVal),
+      source: fitness?.updatedBy || "manual-admin",
+      updatedAt: fitness?.updatedAt || new Date().toISOString(),
+    },
+    instagramFinance: {
+      exact: finVal,
+      compact: formatCompactCount(finVal),
+      source: finance?.updatedBy || "manual-admin",
+      updatedAt: finance?.updatedAt || new Date().toISOString(),
+    },
+    youtubeMain: {
+      exact: ytVal,
+      compact: formatCompactCount(ytVal),
+      source: youtube?.updatedBy || "manual-admin",
+      updatedAt: youtube?.updatedAt || new Date().toISOString(),
+    },
+    combinedCommunity: {
+      exact: combined,
+      compact: formatCompactCount(combined),
+    },
+  };
+}
 
 const isProductionWithoutRedis =
   process.env.NODE_ENV === "production" && !isRedisConfigured;
@@ -498,3 +546,97 @@ export async function listAdminAuditLogs(): Promise<AdminAuditLog[]> {
   );
 }
 
+export interface YouTubeContent {
+  id: string;
+  videoId: string;
+  title: string;
+  description?: string;
+  format: "short" | "long-form";
+  topic: "fitness" | "finance" | "business" | "ai" | "creator" | "ugc" | "other";
+  videoUrl: string;
+  thumbnailUrl: string;
+  publishedAt?: string;
+  durationSeconds?: number;
+  isFeatured: boolean;
+  isPublished: boolean;
+  displayOrder?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+const YOUTUBE_PATH = path.join(process.cwd(), "data", "youtube_content.json");
+const YOUTUBE_KEY = (id: string) => `youtube-video:${id}`;
+
+export async function listYouTubeVideos(opts?: {
+  publishedOnly?: boolean;
+  format?: "short" | "long-form";
+  topic?: string;
+}): Promise<YouTubeContent[]> {
+  let list: YouTubeContent[] = [];
+  if (redis) {
+    const keys = await redis.keys("youtube-video:*");
+    for (const key of keys) {
+      const item = await redis.get<YouTubeContent>(key);
+      if (item) list.push(item);
+    }
+  } else {
+    list = readJSONFile<YouTubeContent[]>(YOUTUBE_PATH, []);
+  }
+
+  if (opts?.publishedOnly) {
+    list = list.filter((item) => item.isPublished);
+  }
+  if (opts?.format) {
+    list = list.filter((item) => item.format === opts.format);
+  }
+  if (opts?.topic && opts.topic !== "all") {
+    list = list.filter((item) => item.topic === opts.topic);
+  }
+
+  return list.sort((a, b) => {
+    if ((a.displayOrder ?? 99) !== (b.displayOrder ?? 99)) {
+      return (a.displayOrder ?? 99) - (b.displayOrder ?? 99);
+    }
+    return new Date(b.publishedAt || b.createdAt).getTime() - new Date(a.publishedAt || a.createdAt).getTime();
+  });
+}
+
+export async function getYouTubeVideo(id: string): Promise<YouTubeContent | null> {
+  if (redis) {
+    return await redis.get<YouTubeContent>(YOUTUBE_KEY(id));
+  }
+  const list = readJSONFile<YouTubeContent[]>(YOUTUBE_PATH, []);
+  return list.find((item) => item.id === id || item.videoId === id) || null;
+}
+
+export async function getYouTubeVideoByVideoId(videoId: string): Promise<YouTubeContent | null> {
+  const list = await listYouTubeVideos();
+  return list.find((item) => item.videoId === videoId) || null;
+}
+
+export async function saveYouTubeVideo(video: YouTubeContent): Promise<YouTubeContent> {
+  if (redis) {
+    await redis.set(YOUTUBE_KEY(video.id), video);
+  } else {
+    const list = readJSONFile<YouTubeContent[]>(YOUTUBE_PATH, []);
+    const idx = list.findIndex((v) => v.id === video.id);
+    if (idx >= 0) {
+      list[idx] = video;
+    } else {
+      list.push(video);
+    }
+    writeJSONFile(YOUTUBE_PATH, list);
+  }
+  return video;
+}
+
+export async function deleteYouTubeVideo(id: string): Promise<boolean> {
+  if (redis) {
+    await redis.del(YOUTUBE_KEY(id));
+    return true;
+  }
+  const list = readJSONFile<YouTubeContent[]>(YOUTUBE_PATH, []);
+  const filtered = list.filter((v) => v.id !== id);
+  writeJSONFile(YOUTUBE_PATH, filtered);
+  return true;
+}

@@ -1,5 +1,6 @@
 import type { CreatorChannel, PersonaId, SocialLink } from "@/types/content";
 import { socials as centralSocials } from "./socials";
+import { YOUTUBE_CHANNEL } from "@/config/youtube";
 
 export const site = {
   name: "Meet Shah",
@@ -75,6 +76,7 @@ export const channelList: CreatorChannel[] = [channels.fitness, channels.finance
 export const socialUrls = {
   instagramFitness: centralSocials.instagramFitness.url,
   instagramFinance: centralSocials.instagramFinance.url,
+  youtube: process.env.NEXT_PUBLIC_YOUTUBE_CHANNEL_URL || YOUTUBE_CHANNEL.channelUrl,
   linkedin: centralSocials.linkedin.url,
   twitter: centralSocials.twitter.url,
   email: centralSocials.email.address,

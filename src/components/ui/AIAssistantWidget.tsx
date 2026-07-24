@@ -20,8 +20,8 @@ import {
   Bot,
   Volume2,
   VolumeX,
+  BarChart3,
 } from "lucide-react";
-import { Card } from "@/components/ui/Card";
 import { useBodyScrollLock } from "@/lib/hooks/useBodyScrollLock";
 
 export interface ActionCardData {
@@ -39,44 +39,52 @@ export type Message = {
 };
 
 const STARTER_QUESTIONS = [
-  "What content does Meet create?",
-  "Tell me about Meet's creator journey.",
-  "Show me his Finance content.",
-  "Show me his Fitness channel.",
-  "How can I collaborate with Meet?",
+  "Does Meet have a YouTube channel?",
+  "How many YouTube subscribers does he have?",
+  "Show me his YouTube Shorts.",
+  "Show me his long-form videos.",
+  "What topics does Meet cover?",
+  "Show me the latest analytics report.",
   "Can I book a meeting?",
-  "Show me the latest analytics reports.",
-  "How do I join the creator team?",
 ];
 
+const WELCOME_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days (§15)
+
 /**
- * Web Audio API notification chime generator.
+ * Web Audio API synthesized 2-note warm digital chime (§16).
+ * Low volume (gain 0.06 - 0.08), ~350ms duration.
  */
-function playNotificationSound() {
+function playWelcomeSound() {
   try {
     const AudioCtx =
       window.AudioContext ||
       (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
     if (!AudioCtx) return;
     const ctx = new AudioCtx();
-    const osc = ctx.createOscillator();
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
     const gain = ctx.createGain();
 
-    osc.type = "sine";
-    // Double note chime (D5 -> A5)
-    osc.frequency.setValueAtTime(587.33, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.12);
+    osc1.type = "sine";
+    osc2.type = "sine";
 
-    gain.gain.setValueAtTime(0.12, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.28);
+    // Warm 2-note chord chime (E5 -> B5)
+    osc1.frequency.setValueAtTime(659.25, ctx.currentTime);
+    osc2.frequency.setValueAtTime(987.77, ctx.currentTime + 0.12);
 
-    osc.connect(gain);
+    gain.gain.setValueAtTime(0.06, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+
+    osc1.connect(gain);
+    osc2.connect(gain);
     gain.connect(ctx.destination);
 
-    osc.start();
-    osc.stop(ctx.currentTime + 0.28);
+    osc1.start(ctx.currentTime);
+    osc2.start(ctx.currentTime + 0.12);
+    osc1.stop(ctx.currentTime + 0.35);
+    osc2.stop(ctx.currentTime + 0.35);
   } catch {
-    // Ignore audio context autoplay restriction errors
+    // Ignore audio restrictions
   }
 }
 
@@ -193,7 +201,22 @@ function ActionCardDisplay({ card }: { card: ActionCardData }) {
             href={card.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-full bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white shadow-md shadow-blue-500/20 hover:bg-blue-700 transition-all w-full sm:w-auto"
+            data-cal-link={
+              card.url.includes("creator-team-discussing")
+                ? "meet-shah-0905/creator-team-discussing"
+                : card.type === "meeting" || card.url.includes("cal.com")
+                ? "meet-shah-0905/60min"
+                : undefined
+            }
+            data-cal-namespace={
+              card.url.includes("creator-team-discussing")
+                ? "creator-team-discussing"
+                : card.type === "meeting" || card.url.includes("cal.com")
+                ? "60min"
+                : undefined
+            }
+            data-cal-config={card.url.includes("cal.com") || card.type === "meeting" ? '{"layout":"month_view","useSlotsViewOnSmallScreen":"true"}' : undefined}
+            className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-full bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white shadow-md shadow-blue-500/20 hover:bg-blue-700 transition-all w-full sm:w-auto cursor-pointer"
           >
             <span>{card.buttonText}</span>
             <ArrowUpRight className="size-3.5" />
@@ -261,14 +284,14 @@ export function AIAssistantWidget() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const [showPromptToast, setShowPromptToast] = useState(false);
-  const [hasInteracted, setHasInteracted] = useState(false);
+  const [showWelcomePopup, setShowWelcomePopup] = useState(false);
+  const [soundPlayed, setSoundPlayed] = useState(false);
 
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
       content:
-        "Hello! I am Aero, Meet Shah's official AI Concierge. Ask me about Meet's creator journey, Fitness and Finance content, UGC packages, published analytics reports, or booking a meeting.",
+        "Hello! I am Aero, Meet Shah's official AI Concierge. Ask me about Meet's creator journey, Fitness and Finance channels, YouTube videos, published analytics reports, or booking a meeting.",
     },
   ]);
   const [input, setInput] = useState("");
@@ -279,28 +302,73 @@ export function AIAssistantWidget() {
   // Lock body scroll when chat modal is open to ensure scroll events stay in chat box
   useBodyScrollLock(isOpen);
 
-  // Sound chime notification on first user interaction with website
+  // Read sound preference from localStorage on mount (§17)
   useEffect(() => {
-    if (hasInteracted) return;
+    if (typeof window === "undefined") return;
+    const pref = localStorage.getItem("meet-ai-sound-enabled");
+    if (pref !== null) {
+      void Promise.resolve().then(() => setSoundEnabled(pref === "true"));
+    }
+  }, []);
 
-    const handleFirstInteraction = () => {
-      if (!hasInteracted) {
-        setHasInteracted(true);
-        setShowPromptToast(true);
-        if (soundEnabled) {
-          playNotificationSound();
-        }
+  const toggleSound = (val: boolean) => {
+    setSoundEnabled(val);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("meet-ai-sound-enabled", String(val));
+    }
+  };
+
+  // Welcome Popup 7-day frequency control (§15)
+  useEffect(() => {
+    if (pathname.startsWith("/admin") || pathname.startsWith("/analytics/admin")) return;
+    if (typeof window === "undefined") return;
+
+    // Check reduced motion preference (§17)
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (mediaQuery.matches) return;
+
+    const lastShown = localStorage.getItem("meet-ai-welcome-last-shown");
+    const now = Date.now();
+
+    if (!lastShown || now - parseInt(lastShown, 10) > WELCOME_INTERVAL_MS) {
+      const timer = setTimeout(() => {
+        setShowWelcomePopup(true);
+        localStorage.setItem("meet-ai-welcome-last-shown", String(now));
+      }, 1500);
+
+      // Auto dismiss popup after 7 seconds (§14)
+      const autoDismissTimer = setTimeout(() => {
+        setShowWelcomePopup(false);
+      }, 9500);
+
+      return () => {
+        clearTimeout(timer);
+        clearTimeout(autoDismissTimer);
+      };
+    }
+  }, [pathname]);
+
+  // Play welcome sound on first user pointer/touch/key interaction if popup is active (§16)
+  useEffect(() => {
+    if (!showWelcomePopup || soundPlayed || !soundEnabled) return;
+
+    const handleUserInteraction = () => {
+      if (!soundPlayed && soundEnabled) {
+        setSoundPlayed(true);
+        playWelcomeSound();
       }
     };
 
-    window.addEventListener("click", handleFirstInteraction, { once: true });
-    window.addEventListener("touchstart", handleFirstInteraction, { once: true });
+    window.addEventListener("pointerdown", handleUserInteraction, { once: true });
+    window.addEventListener("keydown", handleUserInteraction, { once: true });
+    window.addEventListener("scroll", handleUserInteraction, { once: true });
 
     return () => {
-      window.removeEventListener("click", handleFirstInteraction);
-      window.removeEventListener("touchstart", handleFirstInteraction);
+      window.removeEventListener("pointerdown", handleUserInteraction);
+      window.removeEventListener("keydown", handleUserInteraction);
+      window.removeEventListener("scroll", handleUserInteraction);
     };
-  }, [hasInteracted, soundEnabled]);
+  }, [showWelcomePopup, soundPlayed, soundEnabled]);
 
   const scrollToBottom = useCallback(() => {
     if (scrollRef.current) {
@@ -330,7 +398,7 @@ export function AIAssistantWidget() {
     setLoading(true);
 
     if (soundEnabled) {
-      playNotificationSound();
+      playWelcomeSound();
     }
 
     try {
@@ -356,7 +424,7 @@ export function AIAssistantWidget() {
           },
         ]);
         if (soundEnabled) {
-          playNotificationSound();
+          playWelcomeSound();
         }
       } else {
         setMessages((prev) => [
@@ -400,41 +468,78 @@ export function AIAssistantWidget() {
 
   return (
     <>
-      {/* Toast Prompt Notification */}
-      {!isOpen && showPromptToast && (
+      {/* AI Welcome Introduction Popup (§14, §18, §19) */}
+      {!isOpen && showWelcomePopup && (
         <div
-          className="fixed z-[1099] animate-bounce max-w-[280px] sm:max-w-[320px] bg-slate-900 text-white p-3.5 rounded-2xl shadow-2xl border border-slate-700 flex items-start gap-3 transition-all"
+          className="
+            fixed z-[1099] animate-in fade-in slide-in-from-bottom-3 duration-300
+            w-[min(calc(100vw-32px),340px)] bg-slate-900/95 backdrop-blur-md text-white
+            p-4 rounded-2xl shadow-2xl border border-slate-700/80 flex flex-col space-y-3
+          "
           style={{
             right: "max(1.25rem, env(safe-area-inset-right))",
             bottom: "max(5rem, env(safe-area-inset-bottom))",
           }}
         >
-          <div className="size-8 rounded-full bg-blue-600 flex items-center justify-center shrink-0 text-white mt-0.5">
-            <Bot className="size-4" />
-          </div>
-          <div className="flex-1 text-xs">
-            <p className="font-bold text-white leading-tight">👋 Hi! I&apos;m Aero</p>
-            <p className="text-[11px] text-slate-300 mt-1 leading-normal">
-              Meet Shah&apos;s AI Assistant is here to help you with content, booking & proposals!
-            </p>
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex items-center gap-2.5">
+              <div className="size-8 rounded-xl bg-blue-600/30 border border-blue-400/40 text-blue-400 flex items-center justify-center shrink-0">
+                <Bot className="size-4" />
+              </div>
+              <div>
+                <p className="font-heading text-xs font-bold text-white leading-tight">
+                  Hi, I&apos;m Meet&apos;s AI assistant.
+                </p>
+                <span className="text-[10px] text-slate-400 block font-medium">
+                  Aero — Official Creator Concierge
+                </span>
+              </div>
+            </div>
             <button
-              onClick={() => {
-                setShowPromptToast(false);
-                setIsOpen(true);
-                if (soundEnabled) playNotificationSound();
-              }}
-              className="mt-2 text-[10px] font-bold text-blue-400 hover:text-blue-300 underline underline-offset-2 block"
+              onClick={() => setShowWelcomePopup(false)}
+              className="text-slate-400 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors"
+              aria-label="Close welcome popup"
             >
-              Ask Aero Anything →
+              <X className="size-3.5" />
             </button>
           </div>
-          <button
-            onClick={() => setShowPromptToast(false)}
-            className="text-slate-400 hover:text-white p-0.5"
-            aria-label="Dismiss toast"
-          >
-            <X className="size-3.5" />
-          </button>
+
+          <p className="text-[11px] text-slate-300 leading-relaxed">
+            Ask me about his channels, creator work, analytics reports, collaborations, or booking a meeting.
+          </p>
+
+          {/* Quick Actions (§14) */}
+          <div className="pt-1 flex flex-wrap gap-1.5">
+            <Link
+              href="/youtube"
+              onClick={() => setShowWelcomePopup(false)}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-red-600/20 hover:bg-red-600/40 border border-red-500/30 text-[10px] font-bold text-red-300 transition-all"
+            >
+              <Video className="size-3" />
+              <span>Explore YouTube</span>
+            </Link>
+
+            <Link
+              href="/analytics"
+              onClick={() => setShowWelcomePopup(false)}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-600/20 hover:bg-blue-600/40 border border-blue-500/30 text-[10px] font-bold text-blue-300 transition-all"
+            >
+              <BarChart3 className="size-3" />
+              <span>View Analytics</span>
+            </Link>
+
+            <button
+              onClick={() => {
+                setShowWelcomePopup(false);
+                setIsOpen(true);
+                if (soundEnabled) playWelcomeSound();
+              }}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-600/20 hover:bg-emerald-600/40 border border-emerald-500/30 text-[10px] font-bold text-emerald-300 transition-all"
+            >
+              <Calendar className="size-3" />
+              <span>Book a Meeting</span>
+            </button>
+          </div>
         </div>
       )}
 
@@ -444,8 +549,8 @@ export function AIAssistantWidget() {
           ref={buttonRef}
           onClick={() => {
             setIsOpen(true);
-            setShowPromptToast(false);
-            if (soundEnabled) playNotificationSound();
+            setShowWelcomePopup(false);
+            if (soundEnabled) playWelcomeSound();
           }}
           className="fixed z-[1100] size-14 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-xl shadow-blue-500/25 flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 group border border-white/20"
           style={{
@@ -497,10 +602,10 @@ export function AIAssistantWidget() {
 
             <div className="flex items-center gap-1.5">
               <button
-                onClick={() => setSoundEnabled(!soundEnabled)}
+                onClick={() => toggleSound(!soundEnabled)}
                 className="size-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-slate-300 hover:text-white transition-colors"
-                title={soundEnabled ? "Mute sound" : "Enable sound"}
-                aria-label="Toggle notification sound"
+                title={soundEnabled ? "Mute sounds" : "Enable sounds"}
+                aria-label="Toggle assistant sound"
               >
                 {soundEnabled ? <Volume2 className="size-4" /> : <VolumeX className="size-4" />}
               </button>
@@ -518,8 +623,8 @@ export function AIAssistantWidget() {
           {/* Messages window — Strict event containment & custom visible scrollbar */}
           <div
             ref={scrollRef}
-            onWheel={(e) => e.stopPropagation()}
-            onTouchMove={(e) => e.stopPropagation()}
+            onWheel={(e: React.WheelEvent) => e.stopPropagation()}
+            onTouchMove={(e: React.TouchEvent) => e.stopPropagation()}
             className="
               flex-1 overflow-y-auto overscroll-contain p-4 sm:p-5 space-y-4 bg-slate-50/60 text-slate-800
               scrollbar-thin scrollbar-thumb-slate-300 hover:scrollbar-thumb-slate-400 scrollbar-track-transparent
@@ -563,7 +668,7 @@ export function AIAssistantWidget() {
             )}
           </div>
 
-          {/* Suggested Starter Questions */}
+          {/* Suggested Starter Questions (§20) */}
           {messages.length === 1 && (
             <div className="shrink-0 p-3 bg-white border-t border-slate-100 flex gap-2 overflow-x-auto scrollbar-none">
               {STARTER_QUESTIONS.map((q) => (
@@ -589,7 +694,7 @@ export function AIAssistantWidget() {
             >
               <input
                 type="text"
-                placeholder="Ask Aero about fitness, finance, UGC or booking..."
+                placeholder="Ask Aero about fitness, finance, YouTube or booking..."
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 className="flex-1 bg-transparent px-3 py-1.5 text-xs sm:text-xs focus:outline-none text-slate-800 placeholder:text-slate-400"

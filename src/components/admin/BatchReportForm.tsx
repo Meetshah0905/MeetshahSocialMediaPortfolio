@@ -25,7 +25,7 @@ import {
 const CHANNELS: Array<{ slug: ChannelSlug; label: string; handle: string }> = [
   { slug: "instagram-fitness", label: "Instagram Fitness", handle: "@meetsofficial" },
   { slug: "instagram-finance", label: "Instagram Finance", handle: "@meet.fitfix" },
-  { slug: "youtube-main", label: "YouTube Main", handle: "Meet Shah" },
+  { slug: "youtube-main", label: "YouTube Main", handle: "@im_meetshah" },
 ];
 
 const WINDOWS: ReportWindow[] = ["30", "60", "90", "custom"];

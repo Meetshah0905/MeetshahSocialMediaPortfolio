@@ -99,6 +99,12 @@ export default function AdminChannelsPage() {
 
           <div className="flex flex-wrap gap-3">
             <Link
+              href="/admin/youtube"
+              className="bg-red-600 text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-red-700 transition-colors inline-flex items-center gap-1.5"
+            >
+              <span>YouTube Content</span>
+            </Link>
+            <Link
               href="/admin/proposals"
               className="bg-blue text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-blue-deep transition-colors"
             >

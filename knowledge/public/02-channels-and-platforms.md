@@ -2,7 +2,7 @@
 source: "Meet Shah Official Portfolio"
 visibility: "PUBLIC"
 lastReviewedAt: "2026-07-24"
-officialUrl: "https://meetshah.in/analytics"
+officialUrl: "https://meetshah.in/youtube"
 ---
 
 # Meet Shah — Creator Channels & Platforms
@@ -21,11 +21,20 @@ officialUrl: "https://meetshah.in/analytics"
 - **Target Audience**: Young professionals, retail investors, and beginners navigating personal finance in India.
 - **Key Themes**: Stock market basics, mutual funds, tax optimization, financial app walkthroughs, budgeting.
 
-## 3. YouTube Main Channel
-- **Handle**: Meet Shah
-- **Platform**: YouTube Long-form & Shorts
-- **Target Audience**: In-depth strategy seekers looking for step-by-step guides.
-- **Key Themes**: Long-form portfolio reviews, fitness program breakdowns, and full UGC campaign case studies.
+## 3. YouTube Main Channel (`meetsofficial`)
+- **Channel Name**: meetsofficial
+- **Display Handle**: `@im_meetshah`
+- **Channel ID**: `UCrsC6r5AQ9AvWvKTgexD54w`
+- **Canonical Channel URL**: https://www.youtube.com/channel/UCrsC6r5AQ9AvWvKTgexD54w
+- **Videos URL**: https://www.youtube.com/channel/UCrsC6r5AQ9AvWvKTgexD54w/videos
+- **Shorts URL**: https://www.youtube.com/channel/UCrsC6r5AQ9AvWvKTgexD54w/shorts
+- **Playlists URL**: https://www.youtube.com/channel/UCrsC6r5AQ9AvWvKTgexD54w/playlists
+- **Current Subscriber Count**: Retrieved dynamically from database via `get_current_channel_metrics(channel="youtube-main")`.
+- **Approved Count at Review**: 19,700 subscribers (19.7K subscribers).
+- **Supported Formats**:
+  - YouTube Shorts (Quick, focused 60-second video guides)
+  - Long-form YouTube videos (In-depth breakdowns, structured learning)
+- **Public Description**: Meet Shah publishes both short-form and long-form YouTube content covering fitness, personal finance, business, AI, creator education, and practical digital topics.
 
-## Metric Retrieval Notice
-Real-time follower and reach numbers are dynamically fetched from published verified platform analytics reports on this website (`/analytics`).
+## Metric Retrieval Rule
+The current subscriber count must be retrieved dynamically through the `get_current_channel_metrics` tool rather than relying permanently on static documents.

@@ -14,43 +14,43 @@ export function Footer() {
 
   const renderSocialIcon = (label: string) => {
     if (label.includes("Instagram")) {
-      return <InstagramIcon aria-hidden className="size-4" />;
+      return <InstagramIcon aria-hidden className="size-3.5 shrink-0" />;
     }
     if (label.includes("LinkedIn")) {
-      return <LinkedinIcon aria-hidden className="size-4" />;
+      return <LinkedinIcon aria-hidden className="size-3.5 shrink-0" />;
     }
-    return <TwitterIcon aria-hidden className="size-4" />;
+    return <TwitterIcon aria-hidden className="size-3.5 shrink-0" />;
   };
 
   return (
     <footer className="relative isolate mt-auto w-full h-auto min-h-0 overflow-visible bg-surface-alt">
       <BlurCloud preset="glow" />
 
-      <Container className="pt-12 pb-28 md:py-20">
-        <div className="grid gap-10 md:gap-12 md:grid-cols-[1.6fr_1fr_1.2fr]">
+      <Container className="pt-8 sm:pt-10 pb-20 sm:pb-16 md:py-10">
+        <div className="grid gap-8 md:gap-10 md:grid-cols-[1.4fr_1.5fr_1.1fr]">
           {/* Identity */}
           <div>
-            <p className="font-heading text-xl font-semibold text-foreground">
+            <p className="font-heading text-lg sm:text-xl font-semibold text-foreground">
               {site.name}
             </p>
-            <p className="mt-3 max-w-sm text-sm leading-relaxed text-body">
+            <p className="mt-2 max-w-sm text-xs sm:text-sm leading-relaxed text-body">
               {footerContent.positioning}
             </p>
-            <p className="mt-6 inline-flex items-center gap-2 text-sm text-body">
-              <MapPin aria-hidden className="size-4 text-primary" />
-              {site.location}
+            <p className="mt-4 inline-flex items-center gap-2 text-xs sm:text-sm text-body">
+              <MapPin aria-hidden className="size-3.5 text-primary shrink-0" />
+              <span>{site.location}</span>
             </p>
           </div>
 
-          {/* Sitemap — every public route, including those the desktop nav omits. */}
-          <nav aria-label="Footer">
-            <h2 className="text-sm font-medium text-foreground">Explore</h2>
-            <ul className="mt-4 flex flex-col gap-1">
+          {/* Sitemap — 2-column compact grid (§11) */}
+          <nav aria-label="Footer" className="w-full">
+            <h2 className="text-xs sm:text-sm font-semibold text-foreground uppercase tracking-wider">Explore</h2>
+            <ul className="mt-3 grid grid-cols-2 gap-x-6 gap-y-2">
               {footerNavigation.map((item) => (
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="inline-flex min-h-[44px] items-center text-sm text-body transition-colors hover:text-primary"
+                    className="inline-flex items-center text-xs sm:text-sm text-body transition-colors hover:text-primary py-0.5"
                   >
                     {item.label}
                   </Link>
@@ -61,18 +61,18 @@ export function Footer() {
 
           {/* Contact */}
           <div>
-            <h2 className="text-sm font-medium text-foreground">Connect</h2>
-            <ul className="mt-4 flex flex-col gap-1">
+            <h2 className="text-xs sm:text-sm font-semibold text-foreground uppercase tracking-wider">Connect</h2>
+            <ul className="mt-3 flex flex-col gap-2">
               {socials.map((social) => (
                 <li key={social.href}>
                   <a
                     href={social.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex min-h-[44px] items-center gap-2 text-sm text-body transition-colors hover:text-primary"
+                    className="inline-flex items-center gap-2 text-xs sm:text-sm text-body transition-colors hover:text-primary py-0.5"
                   >
                     {renderSocialIcon(social.label)}
-                    {social.handle}
+                    <span>{social.handle}</span>
                     <span className="sr-only"> (opens in a new tab)</span>
                   </a>
                 </li>
@@ -80,9 +80,9 @@ export function Footer() {
               <li>
                 <a
                   href={`mailto:${site.email}`}
-                  className="inline-flex min-h-[44px] items-center gap-2 text-sm text-body transition-colors hover:text-primary [overflow-wrap:anywhere] [word-break:break-word]"
+                  className="inline-flex items-center gap-2 text-xs sm:text-sm text-body transition-colors hover:text-primary py-0.5 [overflow-wrap:anywhere] [word-break:break-word]"
                 >
-                  <Mail aria-hidden className="size-4 shrink-0" />
+                  <Mail aria-hidden className="size-3.5 shrink-0" />
                   <span>{site.email}</span>
                 </a>
               </li>
@@ -90,9 +90,9 @@ export function Footer() {
                 <li>
                   <a
                     href={`tel:${site.phone.replace(/\s/g, "")}`}
-                    className="inline-flex min-h-[44px] items-center gap-2 text-sm text-body transition-colors hover:text-primary"
+                    className="inline-flex items-center gap-2 text-xs sm:text-sm text-body transition-colors hover:text-primary py-0.5"
                   >
-                    <Phone aria-hidden className="size-4 shrink-0" />
+                    <Phone aria-hidden className="size-3.5 shrink-0" />
                     <span>{site.phone}</span>
                   </a>
                 </li>
@@ -101,21 +101,18 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-14 flex flex-col gap-3 border-t border-border-strong pt-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-8 flex flex-col gap-2.5 border-t border-border-strong pt-5 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-body/70">
             {footerContent.copyright(new Date().getFullYear())}
           </p>
-          <div className="flex flex-wrap items-center gap-5">
+          <div className="flex flex-wrap items-center gap-4 sm:gap-5">
             <p className="text-xs text-body/70">{site.role}</p>
-            {/* One discreet recruitment link — the main entry point for the
-                creator network per §2 of the recruitment spec. */}
             <Link
               href={recruitmentCopy.routeHref}
               className="text-xs text-body/70 transition-colors hover:text-primary"
             >
               {recruitmentCopy.footerLinkLabel}
             </Link>
-            {/* Subtle by design (§27). */}
             <Link
               href="/analytics/admin"
               rel="nofollow"

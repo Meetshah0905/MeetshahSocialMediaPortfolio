@@ -90,8 +90,14 @@ export function classifyIntent(message: string): AssistantIntent {
     return "collaboration";
   }
 
-  // 6. Analytics & reports
+  // 6. Analytics, Subscribers & YouTube metrics
   if (
+    text.includes("subscriber") ||
+    text.includes("youtube subscribers") ||
+    text.includes("how many subscribers") ||
+    text.includes("youtube channel") ||
+    text.includes("does meet have youtube") ||
+    text.includes("youtube audience") ||
     text.includes("analytics") ||
     text.includes("report") ||
     text.includes("metrics") ||

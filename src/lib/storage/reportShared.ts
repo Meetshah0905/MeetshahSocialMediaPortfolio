@@ -20,6 +20,19 @@ export type AnalyticsReportMetrics = {
   engagementRate?: number;
   watchTimeMinutes?: number;
   averageViewDurationSeconds?: number;
+
+  // YouTube specific metrics (§2)
+  subscribersStart?: number;
+  subscribersEnd?: number;
+  subscribersGained?: number;
+  subscribersLost?: number;
+  shortsViews?: number;
+  longFormViews?: number;
+  likes?: number;
+  comments?: number;
+  shares?: number;
+  publishedShorts?: number;
+  publishedLongFormVideos?: number;
 };
 
 export type AnalyticsReport = {
@@ -74,7 +87,7 @@ export const CHANNEL_DISPLAY: Record<ChannelSlug, {
   },
   "youtube-main": {
     name: "YouTube Main",
-    handle: "Meet Shah",
+    handle: "@im_meetshah",
     platform: "youtube",
   },
 };

@@ -51,7 +51,7 @@ describe("Assistant Controlled Server Tools", () => {
   it("executes get_creator_team_link correctly", async () => {
     const res = await executeAssistantTool("get_creator_team_link", {});
     expect(res.card?.type).toBe("creator_team");
-    expect(res.card?.url).toBe("/join-creator-team");
+    expect(res.card?.url).toContain("creator-team-discussing");
   });
 });
 

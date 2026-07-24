@@ -5,8 +5,8 @@ import { isAuthenticated } from "@/lib/auth/session";
 import {
   getReport,
   getLatestPublishedReport,
-  isChannelSlug,
 } from "@/lib/storage/db";
+import { getReportSignedUrl } from "@/lib/storage/supabaseStorage";
 
 /**
  * Public PDF download.
@@ -66,12 +66,29 @@ export async function GET(
     : "inline";
   const filename = friendlyDownloadName(report);
 
-  // Local dev fallback: file exists under public/uploads/
+  // Check Supabase Storage or Local Filesystem
   if (report.pdfStorageKey) {
+    try {
+      const signedUrl = await getReportSignedUrl(report.pdfStorageKey, 3600);
+      if (signedUrl && signedUrl.startsWith("http")) {
+        const response = NextResponse.redirect(signedUrl, 302);
+        response.headers.set(
+          "Content-Disposition",
+          `${disposition}; filename="${filename}"`
+        );
+        return response;
+      }
+    } catch {
+      // Fallback to local streaming
+    }
+
     const cleanKey = report.pdfStorageKey.replace(/^\/+/, "");
-    const localPath = path.join(process.cwd(), "public", "uploads", cleanKey);
-    if (fs.existsSync(localPath)) {
-      const data = fs.readFileSync(localPath);
+    const localPath = path.join(process.cwd(), "uploads", "reports", cleanKey);
+    const altLocalPath = path.join(process.cwd(), "public", "uploads", cleanKey);
+    const finalPath = fs.existsSync(localPath) ? localPath : fs.existsSync(altLocalPath) ? altLocalPath : null;
+
+    if (finalPath) {
+      const data = fs.readFileSync(finalPath);
       return new NextResponse(data, {
         headers: {
           "Content-Type": "application/pdf",
@@ -86,7 +103,7 @@ export async function GET(
     return NextResponse.json({ error: "PDF missing from storage" }, { status: 410 });
   }
 
-  // Vercel Blob: the URL is already public — redirect with the friendly name.
+  // Storage fallback redirect
   try {
     const url = new URL(report.pdfUrl);
     const response = NextResponse.redirect(url, 302);
