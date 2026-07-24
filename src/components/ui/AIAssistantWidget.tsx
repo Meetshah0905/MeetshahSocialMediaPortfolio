@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import {
@@ -18,6 +18,8 @@ import {
   ArrowUpRight,
   UserCheck,
   Bot,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { useBodyScrollLock } from "@/lib/hooks/useBodyScrollLock";
@@ -48,6 +50,37 @@ const STARTER_QUESTIONS = [
 ];
 
 /**
+ * Web Audio API notification chime generator.
+ */
+function playNotificationSound() {
+  try {
+    const AudioCtx =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = "sine";
+    // Double note chime (D5 -> A5)
+    osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.12);
+
+    gain.gain.setValueAtTime(0.12, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.28);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start();
+    osc.stop(ctx.currentTime + 0.28);
+  } catch {
+    // Ignore audio context autoplay restriction errors
+  }
+}
+
+/**
  * Lightweight Markdown & Link Parser for clean formatted text rendering.
  */
 function parseFormattedMarkdown(text: string) {
@@ -56,7 +89,6 @@ function parseFormattedMarkdown(text: string) {
   return lines.map((line, lineIdx) => {
     if (!line.trim()) return <div key={lineIdx} className="h-2" />;
 
-    // Regex matching markdown links [label](url), bold **text**, and inline `code`
     const tokenRegex = /(\[[^\]]+\]\([^)]+\)|\*\*[^*]+\*\*|`[^`]+`)/g;
     const parts = line.split(tokenRegex);
 
@@ -228,11 +260,15 @@ function HumanHandoffCard() {
 export function AIAssistantWidget() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [showPromptToast, setShowPromptToast] = useState(false);
+  const [hasInteracted, setHasInteracted] = useState(false);
+
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
       content:
-        "Hello! I am Meet Shah's official AI Concierge. Ask me about Meet's creator journey, Fitness and Finance content, UGC packages, published analytics reports, or booking a meeting.",
+        "Hello! I am Aero, Meet Shah's official AI Concierge. Ask me about Meet's creator journey, Fitness and Finance content, UGC packages, published analytics reports, or booking a meeting.",
     },
   ]);
   const [input, setInput] = useState("");
@@ -240,30 +276,44 @@ export function AIAssistantWidget() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
-  const scrollToBottom = () => {
+  // Lock body scroll when chat modal is open to ensure scroll events stay in chat box
+  useBodyScrollLock(isOpen);
+
+  // Sound chime notification on first user interaction with website
+  useEffect(() => {
+    if (hasInteracted) return;
+
+    const handleFirstInteraction = () => {
+      if (!hasInteracted) {
+        setHasInteracted(true);
+        setShowPromptToast(true);
+        if (soundEnabled) {
+          playNotificationSound();
+        }
+      }
+    };
+
+    window.addEventListener("click", handleFirstInteraction, { once: true });
+    window.addEventListener("touchstart", handleFirstInteraction, { once: true });
+
+    return () => {
+      window.removeEventListener("click", handleFirstInteraction);
+      window.removeEventListener("touchstart", handleFirstInteraction);
+    };
+  }, [hasInteracted, soundEnabled]);
+
+  const scrollToBottom = useCallback(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTo({
         top: scrollRef.current.scrollHeight,
         behavior: "smooth",
       });
     }
-  };
+  }, []);
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, loading]);
-
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const mq = window.matchMedia("(max-width: 639px)");
-    const update = () => setIsMobile(mq.matches);
-    update();
-    mq.addEventListener("change", update);
-    return () => mq.removeEventListener("change", update);
-  }, []);
-
-  useBodyScrollLock(isOpen && isMobile);
+  }, [messages, loading, scrollToBottom]);
 
   const [lastPath, setLastPath] = useState(pathname);
   if (lastPath !== pathname) {
@@ -278,6 +328,10 @@ export function AIAssistantWidget() {
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setLoading(true);
+
+    if (soundEnabled) {
+      playNotificationSound();
+    }
 
     try {
       const res = await fetch("/api/assistant/chat", {
@@ -301,12 +355,15 @@ export function AIAssistantWidget() {
             card: data.card,
           },
         ]);
+        if (soundEnabled) {
+          playNotificationSound();
+        }
       } else {
         setMessages((prev) => [
           ...prev,
           {
             role: "assistant",
-            content: "The AI assistant is temporarily unavailable. You can still use the meeting, collaboration and creator-team links.",
+            content: "Aero is temporarily unavailable. You can still use the meeting, collaboration and creator-team links.",
             card: {
               type: "handoff",
               title: "Contact Options",
@@ -322,7 +379,7 @@ export function AIAssistantWidget() {
         ...prev,
         {
           role: "assistant",
-          content: "The AI assistant is temporarily unavailable. You can still use the meeting, collaboration and creator-team links.",
+          content: "Aero is temporarily unavailable. You can still use the meeting, collaboration and creator-team links.",
           card: {
             type: "handoff",
             title: "Contact Options",
@@ -343,26 +400,72 @@ export function AIAssistantWidget() {
 
   return (
     <>
+      {/* Toast Prompt Notification */}
+      {!isOpen && showPromptToast && (
+        <div
+          className="fixed z-[1099] animate-bounce max-w-[280px] sm:max-w-[320px] bg-slate-900 text-white p-3.5 rounded-2xl shadow-2xl border border-slate-700 flex items-start gap-3 transition-all"
+          style={{
+            right: "max(1.25rem, env(safe-area-inset-right))",
+            bottom: "max(5rem, env(safe-area-inset-bottom))",
+          }}
+        >
+          <div className="size-8 rounded-full bg-blue-600 flex items-center justify-center shrink-0 text-white mt-0.5">
+            <Bot className="size-4" />
+          </div>
+          <div className="flex-1 text-xs">
+            <p className="font-bold text-white leading-tight">👋 Hi! I&apos;m Aero</p>
+            <p className="text-[11px] text-slate-300 mt-1 leading-normal">
+              Meet Shah&apos;s AI Assistant is here to help you with content, booking & proposals!
+            </p>
+            <button
+              onClick={() => {
+                setShowPromptToast(false);
+                setIsOpen(true);
+                if (soundEnabled) playNotificationSound();
+              }}
+              className="mt-2 text-[10px] font-bold text-blue-400 hover:text-blue-300 underline underline-offset-2 block"
+            >
+              Ask Aero Anything →
+            </button>
+          </div>
+          <button
+            onClick={() => setShowPromptToast(false)}
+            className="text-slate-400 hover:text-white p-0.5"
+            aria-label="Dismiss toast"
+          >
+            <X className="size-3.5" />
+          </button>
+        </div>
+      )}
+
+      {/* Floating Launcher Button */}
       {!isOpen && (
         <button
           ref={buttonRef}
-          onClick={() => setIsOpen(true)}
+          onClick={() => {
+            setIsOpen(true);
+            setShowPromptToast(false);
+            if (soundEnabled) playNotificationSound();
+          }}
           className="fixed z-[1100] size-14 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-xl shadow-blue-500/25 flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 group border border-white/20"
           style={{
             right: "max(1.25rem, env(safe-area-inset-right))",
             bottom: "max(1.25rem, env(safe-area-inset-bottom))",
           }}
-          aria-label="Ask Meet AI Concierge"
+          aria-label="Ask Aero AI Concierge"
         >
           <MessageSquare className="size-6 group-hover:rotate-6 transition-transform" />
-          <span className="absolute -top-1 -right-1 size-4 bg-emerald-500 rounded-full border-2 border-white flex items-center justify-center shadow-xs">
-            <span className="size-1.5 bg-white rounded-full animate-ping" />
+          <span className="absolute -top-1.5 -right-1.5 px-1.5 py-0.5 bg-emerald-500 text-[9px] font-extrabold text-white rounded-full border-2 border-white shadow-xs tracking-wider">
+            Aero
           </span>
         </button>
       )}
 
+      {/* Aero AI Chat Panel Modal */}
       {isOpen && (
-        <Card
+        <div
+          onWheel={(e: React.WheelEvent) => e.stopPropagation()}
+          onTouchMove={(e: React.TouchEvent) => e.stopPropagation()}
           className="
             fixed z-[1150] border border-slate-200/90 bg-white shadow-2xl
             flex flex-col overflow-hidden transition-all duration-300
@@ -379,7 +482,7 @@ export function AIAssistantWidget() {
               <div>
                 <div className="flex items-center gap-2">
                   <span className="font-heading text-sm font-bold tracking-tight text-white block leading-tight">
-                    Meet Shah AI Concierge
+                    Aero — Meet Shah AI
                   </span>
                   <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[9px] font-semibold">
                     <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -387,23 +490,44 @@ export function AIAssistantWidget() {
                   </span>
                 </div>
                 <span className="text-[10px] text-slate-400 block mt-0.5 font-medium">
-                  Official Creator Portfolio Assistant
+                  Official Creator Concierge
                 </span>
               </div>
             </div>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="size-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-slate-300 hover:text-white transition-colors"
-              aria-label="Close Concierge"
-            >
-              <X className="size-4" />
-            </button>
+
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => setSoundEnabled(!soundEnabled)}
+                className="size-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-slate-300 hover:text-white transition-colors"
+                title={soundEnabled ? "Mute sound" : "Enable sound"}
+                aria-label="Toggle notification sound"
+              >
+                {soundEnabled ? <Volume2 className="size-4" /> : <VolumeX className="size-4" />}
+              </button>
+
+              <button
+                onClick={() => setIsOpen(false)}
+                className="size-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-slate-300 hover:text-white transition-colors"
+                aria-label="Close Concierge"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
           </div>
 
-          {/* Messages window — Clean overflow with HIDDEN scrollbar */}
+          {/* Messages window — Strict event containment & custom visible scrollbar */}
           <div
             ref={scrollRef}
-            className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 bg-slate-50/50 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            onWheel={(e) => e.stopPropagation()}
+            onTouchMove={(e) => e.stopPropagation()}
+            className="
+              flex-1 overflow-y-auto overscroll-contain p-4 sm:p-5 space-y-4 bg-slate-50/60 text-slate-800
+              scrollbar-thin scrollbar-thumb-slate-300 hover:scrollbar-thumb-slate-400 scrollbar-track-transparent
+            "
+            style={{
+              maxHeight: "100%",
+              touchAction: "pan-y",
+            }}
           >
             {messages.map((m, idx) => {
               const isUser = m.role === "user";
@@ -434,14 +558,14 @@ export function AIAssistantWidget() {
             {loading && (
               <div className="flex justify-start items-center gap-2 p-3 bg-white border border-slate-200/80 rounded-2xl max-w-[230px] text-xs text-slate-500 shadow-xs">
                 <Loader2 className="size-4 animate-spin text-blue-600" />
-                <span className="font-medium">Checking verified knowledge...</span>
+                <span className="font-medium">Aero is thinking...</span>
               </div>
             )}
           </div>
 
           {/* Suggested Starter Questions */}
           {messages.length === 1 && (
-            <div className="shrink-0 p-3 bg-white border-t border-slate-100 flex gap-2 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="shrink-0 p-3 bg-white border-t border-slate-100 flex gap-2 overflow-x-auto scrollbar-none">
               {STARTER_QUESTIONS.map((q) => (
                 <button
                   key={q}
@@ -465,7 +589,7 @@ export function AIAssistantWidget() {
             >
               <input
                 type="text"
-                placeholder="Ask about fitness, finance, UGC or book a meeting..."
+                placeholder="Ask Aero about fitness, finance, UGC or booking..."
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 className="flex-1 bg-transparent px-3 py-1.5 text-xs sm:text-xs focus:outline-none text-slate-800 placeholder:text-slate-400"
@@ -475,13 +599,13 @@ export function AIAssistantWidget() {
                 type="submit"
                 disabled={!input.trim() || loading}
                 className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:opacity-40 disabled:hover:from-blue-600 disabled:hover:to-blue-700 text-white shrink-0 size-9 rounded-xl flex items-center justify-center transition-all shadow-md shadow-blue-500/20"
-                aria-label="Send message"
+                aria-label="Send message to Aero"
               >
                 <Send className="size-4" />
               </button>
             </form>
           </div>
-        </Card>
+        </div>
       )}
     </>
   );
