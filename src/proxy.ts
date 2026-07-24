@@ -3,27 +3,39 @@ import type { NextRequest } from "next/server";
 import { isAuthenticated } from "@/lib/auth/session";
 
 /**
- * Route protection.
+ * Route protection proxy middleware.
  *
- * Pages under /admin and /analytics/admin redirect to login; /api/admin/*
- * (except login) get a 401. Session verification is a signed-HMAC check —
- * see src/lib/auth/session.ts.
+ * Pages under /admin and /analytics/admin redirect to /admin/login; /api/admin/*
+ * (except login) get a 401 JSON error.
+ * Session verification is a signed HMAC-SHA256 token check.
  */
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const userIsAuth = await isAuthenticated(request);
+
+  // If user is already authenticated and visits /admin/login, redirect to /admin
+  if (pathname === "/admin/login") {
+    if (userIsAuth) {
+      return NextResponse.redirect(new URL("/admin", request.url));
+    }
+    return NextResponse.next();
+  }
+
+  // Exempt public login API endpoint
+  if (pathname === "/api/admin/login") {
+    return NextResponse.next();
+  }
 
   const isAdminPage =
-    (pathname.startsWith("/admin") || pathname.startsWith("/analytics/admin")) &&
-    !pathname.startsWith("/admin/login");
+    pathname.startsWith("/admin") || pathname.startsWith("/analytics/admin");
 
-  const isAdminApi =
-    pathname.startsWith("/api/admin") && !pathname.startsWith("/api/admin/login");
+  const isAdminApi = pathname.startsWith("/api/admin");
 
   if (!isAdminPage && !isAdminApi) {
     return NextResponse.next();
   }
 
-  if (await isAuthenticated(request)) {
+  if (userIsAuth) {
     return NextResponse.next();
   }
 

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
 import { AdminBackButton } from "@/components/admin/AdminBackButton";
+import { LogoutButton } from "@/components/admin/LogoutButton";
 
 type ChannelState = {
   id: string;
@@ -122,6 +123,7 @@ export default function AdminChannelsPage() {
             >
               View Reports
             </Link>
+            <LogoutButton />
           </div>
         </div>
 

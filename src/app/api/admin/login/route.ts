@@ -7,9 +7,14 @@ import {
 import { checkRateLimit } from "@/lib/security/rateLimit";
 import { logAdminAction } from "@/lib/storage/db";
 
+export async function GET() {
+  const configured = isAuthConfigured();
+  return NextResponse.json({ configured });
+}
+
 export async function POST(request: NextRequest) {
   try {
-    // Rate limit before touching credentials (§18).
+    // Rate limit before touching credentials
     if (!(await checkRateLimit("login", request))) {
       return NextResponse.json(
         { error: "Too many attempts. Try again in a minute." },
@@ -18,12 +23,10 @@ export async function POST(request: NextRequest) {
     }
 
     if (!isAuthConfigured()) {
-      // Fail closed, but tell the operator what's wrong — this replaces the
-      // old hardcoded default credentials, which were a public backdoor.
       return NextResponse.json(
         {
           error:
-            "Admin login is not configured. Set ADMIN_EMAIL, ADMIN_PASSWORD and ANALYTICS_SESSION_SECRET in .env.local.",
+            "Admin authentication is not configured. Required server-side environment variables (ADMIN_EMAIL, ADMIN_PASSWORD, ANALYTICS_SESSION_SECRET) are missing.",
         },
         { status: 503 },
       );
@@ -33,14 +36,14 @@ export async function POST(request: NextRequest) {
     const { email, password } = body ?? {};
 
     if (!(await validateAdminCredentials(email, password))) {
-      // Generic message — never reveal which field was wrong (§20.1).
+      // Generic message — never reveal which specific credential was incorrect (§20.1)
       return NextResponse.json(
         { error: "Invalid admin credentials" },
         { status: 401 },
       );
     }
 
-    const response = NextResponse.json({ success: true });
+    const response = NextResponse.json({ success: true, redirectUrl: "/admin" });
     const sessionSet = await setAdminSession(response);
     if (!sessionSet) {
       return NextResponse.json(

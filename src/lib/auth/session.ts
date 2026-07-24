@@ -10,8 +10,7 @@ const SESSION_TTL_MS = 2 * 60 * 60 * 1000;
  *
  * Cookie value is `<expiryEpochMs>.<hmacHex>` where the HMAC is computed over
  * the expiry with ANALYTICS_SESSION_SECRET. Forging a session requires the
- * secret; the previous implementation used the static string
- * "active_authenticated_session", which anyone could set by hand.
+ * secret.
  *
  * Web Crypto (crypto.subtle) is used so the same code verifies in both the
  * proxy (middleware) runtime and Node route handlers.
@@ -40,8 +39,7 @@ async function hmacHex(secret: string, payload: string): Promise<string> {
 
 /**
  * Constant-time-ish comparison: hash both sides with a fresh random key and
- * compare digests. Avoids leaking match position through string comparison
- * without needing Node's timingSafeEqual (unavailable in the edge runtime).
+ * compare digests. Avoids leaking match position through string comparison.
  */
 async function digestsEqual(a: string, b: string): Promise<boolean> {
   const salt = crypto.getRandomValues(new Uint8Array(16)).join(",");
@@ -89,8 +87,8 @@ export async function setAdminSession(response: NextResponse): Promise<boolean> 
   response.cookies.set(ADMIN_COOKIE_NAME, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-    maxAge: SESSION_TTL_MS / 1000,
+    sameSite: "lax",
+    maxAge: Math.floor(SESSION_TTL_MS / 1000),
     path: "/",
   });
   return true;
@@ -98,13 +96,19 @@ export async function setAdminSession(response: NextResponse): Promise<boolean> 
 
 export function clearAdminSession(response: NextResponse): void {
   response.cookies.delete(ADMIN_COOKIE_NAME);
+  response.cookies.set(ADMIN_COOKIE_NAME, "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    expires: new Date(0),
+    maxAge: 0,
+    path: "/",
+  });
 }
 
 /**
  * Credential check. FAILS CLOSED: if ADMIN_EMAIL / ADMIN_PASSWORD are not
- * configured, no login is possible. The previous implementation fell back to
- * hardcoded defaults ("admin@meetshah.com" / "meetshah2026"), which meant any
- * deployment without env vars had a publicly known admin password.
+ * configured, no login is possible. Never hardcode fallback credentials.
  */
 export async function validateAdminCredentials(
   email?: string,
@@ -123,7 +127,7 @@ export async function validateAdminCredentials(
   return emailOk && passwordOk;
 }
 
-/** True when auth is configured at all — used to show a setup hint on login. */
+/** True when all three required authentication environment variables are configured on the server. */
 export function isAuthConfigured(): boolean {
   return Boolean(
     process.env.ADMIN_EMAIL &&

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
 import { AdminBackButton } from "@/components/admin/AdminBackButton";
+import { LogoutButton } from "@/components/admin/LogoutButton";
 import { YOUTUBE_CHANNEL } from "@/config/youtube";
 import type { YouTubeContent } from "@/lib/storage/db";
 import { Plus, ExternalLink, RefreshCw, Trash2, Edit, CheckCircle, Eye } from "lucide-react";
@@ -76,8 +77,9 @@ export default function AdminYouTubePage() {
   return (
     <div className="min-h-screen bg-surface py-12">
       <Container>
-        <div className="mb-6">
+        <div className="mb-6 flex items-center justify-between">
           <AdminBackButton label="Back to Channel Settings" href="/admin/channels" />
+          <LogoutButton />
         </div>
 
         {/* Channel Identity Header Card */}
