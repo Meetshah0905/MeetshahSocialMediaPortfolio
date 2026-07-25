@@ -35,6 +35,8 @@ export type AnalyticsReportMetrics = {
   publishedLongFormVideos?: number;
 };
 
+export type PdfStatus = "available" | "missing" | "uploading" | "failed";
+
 export type AnalyticsReport = {
   id: string;
   slug: string;
@@ -51,16 +53,17 @@ export type AnalyticsReport = {
 
   metrics?: AnalyticsReportMetrics;
 
-  pdfUrl: string;
-  pdfStorageKey: string;
-  originalPdfFilename: string;
-  pdfSizeBytes: number;
-  pdfSha256?: string;
+  pdfUrl?: string | null;
+  pdfStorageKey?: string | null;
+  originalPdfFilename?: string | null;
+  pdfSizeBytes?: number | null;
+  pdfSha256?: string | null;
 
   coverImageUrl?: string | null;
   coverImageStorageKey?: string | null;
 
   status: ReportStatus;
+  pdfStatus?: PdfStatus;
 
   publishedAt?: string | null;
   archivedAt?: string | null;
@@ -109,7 +112,7 @@ export function isReportWindow(value: string): value is ReportWindow {
   return value === "30" || value === "60" || value === "90" || value === "custom";
 }
 
-export function formatPdfFileSize(bytes: number): string {
+export function formatPdfFileSize(bytes?: number | null): string {
   if (!bytes || bytes <= 0) return "0 B";
   if (bytes < 1024 * 1024) {
     return `${(bytes / 1024).toFixed(1)} KB`;

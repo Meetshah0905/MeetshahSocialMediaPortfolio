@@ -66,6 +66,19 @@ export async function GET(
     : "inline";
   const filename = friendlyDownloadName(report);
 
+  // Handle Data URL (Base64 PDF fallback for serverless environments)
+  if (report.pdfUrl && report.pdfUrl.startsWith("data:application/pdf;base64,")) {
+    const base64Data = report.pdfUrl.replace(/^data:application\/pdf;base64,/, "");
+    const pdfBuffer = Buffer.from(base64Data, "base64");
+    return new NextResponse(pdfBuffer, {
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `${disposition}; filename="${filename}"`,
+        "Cache-Control": "public, max-age=3600",
+      },
+    });
+  }
+
   // Check Supabase Storage or Local Filesystem
   if (report.pdfStorageKey) {
     try {
@@ -103,7 +116,7 @@ export async function GET(
     return NextResponse.json({ error: "PDF missing from storage" }, { status: 410 });
   }
 
-  // Storage fallback redirect
+  // Storage HTTP fallback redirect
   try {
     const url = new URL(report.pdfUrl);
     const response = NextResponse.redirect(url, 302);
