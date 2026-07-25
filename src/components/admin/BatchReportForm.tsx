@@ -286,7 +286,20 @@ export function BatchReportForm() {
       });
       return;
     }
-    patchPanel(window, { pdfFile: file, message: null, status: "idle" });
+
+    const todayIso = new Date().toISOString().slice(0, 10);
+    const existing = panels.find((p) => p.window === window);
+    const days = WINDOW_DAYS[window] ?? 30;
+    const endIso = existing?.periodEnd || todayIso;
+    const startIso = existing?.periodStart || isoAddDays(endIso, -(days - 1));
+
+    patchPanel(window, {
+      pdfFile: file,
+      periodStart: startIso,
+      periodEnd: endIso,
+      message: null,
+      status: "idle",
+    });
   };
 
   const copySummaryTo = (from: ReportWindow, to: ReportWindow) => {
@@ -448,13 +461,31 @@ export function BatchReportForm() {
     setError(null);
     setNotice(null);
 
-    // Auto-save any staged or unsaved panels with PDFs so the user can publish directly
-    let currentPanels = panels;
-    const unsavedWithPdf = currentPanels.filter((p) => (!p.reportId || !p.pdfUploaded) && p.pdfFile);
-    if (unsavedWithPdf.length > 0 || currentPanels.some((p) => !p.reportId)) {
-      setBusy(true);
-      currentPanels = await runSequentially(savePanel);
-      setBusy(false);
+    // Auto-fill dates if missing for any staged panel with PDF
+    const todayIso = new Date().toISOString().slice(0, 10);
+    setPanels((prev) =>
+      prev.map((p) => {
+        if (p.pdfFile || p.pdfUploaded) {
+          const days = WINDOW_DAYS[p.window] ?? 30;
+          const endIso = p.periodEnd || todayIso;
+          const startIso = p.periodStart || isoAddDays(endIso, -(days - 1));
+          return { ...p, periodStart: startIso, periodEnd: endIso };
+        }
+        return p;
+      }),
+    );
+
+    setBusy(true);
+    const currentPanels = await runSequentially(savePanel);
+    setBusy(false);
+
+    // Check for any panel validation errors and display exact error
+    const errorPanels = currentPanels.filter((p) => p.status === "error");
+    if (errorPanels.length > 0) {
+      setError(
+        `${WINDOW_PANEL_LABEL[errorPanels[0].window]}: ${errorPanels[0].message || "Validation failed. Please check inputs."}`,
+      );
+      return;
     }
 
     const readyToPublish = currentPanels.filter(
