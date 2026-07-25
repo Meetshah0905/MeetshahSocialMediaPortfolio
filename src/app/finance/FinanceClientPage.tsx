@@ -215,15 +215,15 @@ export default function FinanceClientPage({ initialFollowers }: FinanceClientPag
     <div ref={containerRef} className="bg-white text-ink relative w-full" onMouseMove={handleMouseMove}>
       
       {/* 2. CINEMATIC HERO SECTION */}
-      <section ref={scopeRef} className="relative w-full bg-[#050811] overflow-clip flex flex-col items-center select-none pt-2 pb-8 md:pt-4 md:pb-10">
+      <section ref={scopeRef} className="relative w-full bg-[#050811] overflow-clip flex flex-col items-center select-none pt-0 pb-2 sm:py-4">
         <HeroMaroonAtmosphere theme="blue" />
         <HeroParticles theme="blue" />
 
         <div
           ref={heroMaskRef}
-          className="w-full max-w-[1400px] px-3 sm:px-6 relative flex justify-center items-center z-10"
+          className="w-full max-w-[1400px] px-0 sm:px-6 relative flex justify-center items-center z-10"
         >
-          <div className="relative w-full overflow-hidden rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.5),0_0_80px_rgba(220,60,80,0.15)] border border-white/10">
+          <div className="relative w-full overflow-hidden rounded-none sm:rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.5),0_0_80px_rgba(220,60,80,0.15)] border-y sm:border border-white/10">
             <Image
               ref={heroImageRef}
               src={imageManifest.financeHero.src}
@@ -233,7 +233,7 @@ export default function FinanceClientPage({ initialFollowers }: FinanceClientPag
               priority
               quality={100}
               sizes="(max-width: 1400px) 100vw, 1400px"
-              className="block w-full h-auto max-h-[78vh] object-contain mx-auto scale-[1.01]"
+              className="block w-full h-auto max-h-[78vh] object-cover sm:object-contain mx-auto scale-[1.01]"
             />
 
             {/* Light Sweep Highlight Overlay */}
@@ -248,40 +248,43 @@ export default function FinanceClientPage({ initialFollowers }: FinanceClientPag
             />
 
             {/* Follower badge */}
-            <div className="hero-badge absolute top-4 right-4 bg-blue px-3.5 py-1.5 rounded-full text-white text-[11px] font-bold shadow-md z-20 flex items-center gap-1.5">
-              <InstagramIcon className="size-3.5 fill-white stroke-none" />
+            <div className="hero-badge absolute top-3 sm:top-4 right-3 sm:right-4 bg-blue px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-white text-[10px] sm:text-[11px] font-bold shadow-md z-20 flex items-center gap-1.5">
+              <InstagramIcon className="size-3 sm:size-3.5 fill-white stroke-none" />
               <span>{followerDisplay} Followers</span>
             </div>
+
+            {/* Dark gradient backdrop */}
+            <div className="absolute inset-x-0 bottom-0 h-32 sm:h-36 bg-gradient-to-t from-[#050811]/95 via-[#050811]/60 to-transparent pointer-events-none z-10" />
+
+            {/* CTAs & Badges row overlayed ON TOP of the image */}
+            <div className="absolute inset-x-0 bottom-2.5 sm:bottom-4 z-20 px-3 sm:px-6">
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-2.5 sm:gap-4 max-w-[1400px] mx-auto">
+                <div ref={pillsRef} className="hidden sm:flex gap-2 sm:gap-3 flex-wrap justify-center sm:justify-start">
+                  <span className="bg-blue text-white px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-[9px] sm:text-[10px] font-heading font-bold uppercase tracking-widest border border-blue-light/20 shadow-soft">
+                    PERSONAL FINANCE CREATOR
+                  </span>
+                  <span className="bg-white/10 backdrop-blur-md text-white px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-[9px] sm:text-[10px] font-heading font-bold uppercase tracking-widest border border-white/20 shadow-xs">
+                    @meet.fitfix
+                  </span>
+                </div>
+
+                <div ref={ctasRef} className="flex gap-2 sm:gap-3 w-full sm:w-auto justify-center">
+                  <ArrowPillButton href="/contact?vertical=finance" size="sm" className="flex-1 sm:flex-initial text-center justify-center">
+                    Explore Finance Content
+                  </ArrowPillButton>
+                  <a
+                    href="https://www.instagram.com/meet.fitfix/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex min-h-9 sm:min-h-10 items-center justify-center gap-1.5 sm:gap-2 border border-white/20 bg-white/10 hover:bg-white/20 text-white px-3 sm:px-4 rounded-full text-[11px] sm:text-xs font-semibold whitespace-nowrap transition-colors flex-1 sm:flex-initial"
+                  >
+                    <InstagramIcon className="size-3.5 sm:size-4 text-white" />
+                    <span>@meet.fitfix</span>
+                  </a>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-
-        {/* CTAs & Badges row positioned underneath */}
-        <div className="relative w-full max-w-[1400px] z-20 mt-5 px-6">
-          <Container className="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div ref={pillsRef} className="flex gap-3">
-              <span className="bg-blue text-white px-3.5 py-1.5 rounded-full text-[10px] font-heading font-bold uppercase tracking-widest border border-blue-light/20 shadow-soft">
-                PERSONAL FINANCE CREATOR
-              </span>
-              <span className="bg-white/10 backdrop-blur-md text-white px-3.5 py-1.5 rounded-full text-[10px] font-heading font-bold uppercase tracking-widest border border-white/20 shadow-xs">
-                @meet.fitfix
-              </span>
-            </div>
-
-            <div ref={ctasRef} className="flex gap-3 w-full sm:w-auto">
-              <ArrowPillButton href="/contact?vertical=finance" size="md" className="flex-1 sm:flex-initial">
-                Explore Finance Content
-              </ArrowPillButton>
-              <a
-                href="https://www.instagram.com/meet.fitfix/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex min-h-11 items-center justify-center gap-2 border border-white/20 bg-white/10 hover:bg-white/20 text-white px-5 rounded-full text-xs font-semibold transition-colors flex-1 sm:flex-initial"
-              >
-                <InstagramIcon className="size-4 text-white" />
-                <span>@meet.fitfix</span>
-              </a>
-            </div>
-          </Container>
         </div>
       </section>
 

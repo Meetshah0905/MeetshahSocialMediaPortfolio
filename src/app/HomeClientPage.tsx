@@ -165,7 +165,7 @@ export default function HomeClientPage({ profiles }: { profiles: HomeProfile[] }
       {/* 1. HERO SECTION (Full-bleed poster with rich ambient maroon atmosphere) */}
       <section
         ref={heroRef}
-        className="relative w-full bg-[#230d10] overflow-clip flex flex-col items-center select-none pt-2 pb-8 md:pt-4 md:pb-10"
+        className="relative w-full bg-[#230d10] overflow-clip flex flex-col items-center select-none pt-0 pb-2 sm:py-4"
       >
         {/* Ambient Maroon Depth, Interactive Mouse Spotlight & Parallax Particles */}
         <HeroMaroonAtmosphere theme="maroon" />
@@ -175,10 +175,10 @@ export default function HomeClientPage({ profiles }: { profiles: HomeProfile[] }
 
         <div
           ref={heroMaskRef}
-          className="w-full max-w-[1400px] px-3 sm:px-6 relative flex justify-center items-center z-10"
+          className="w-full max-w-[1400px] px-0 sm:px-6 relative flex justify-center items-center z-10"
           style={{ clipPath: "inset(0 100% 0 0)" }}
         >
-          <div className="relative w-full overflow-hidden rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.5),0_0_80px_rgba(220,60,80,0.15)] border border-white/10">
+          <div className="relative w-full overflow-hidden rounded-none sm:rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.5),0_0_80px_rgba(220,60,80,0.15)] border-y sm:border border-white/10">
             {/* Cover poster image */}
             <Image
               ref={heroImageRef}
@@ -189,7 +189,7 @@ export default function HomeClientPage({ profiles }: { profiles: HomeProfile[] }
               priority
               quality={100}
               sizes="(max-width: 1400px) 100vw, 1400px"
-              className="block w-full h-auto max-h-[78vh] object-contain mx-auto scale-[1.01]"
+              className="block w-full h-auto max-h-[78vh] object-cover sm:object-contain mx-auto scale-[1.01]"
             />
             
             {/* Light Sweep Highlight Overlay */}
@@ -202,37 +202,40 @@ export default function HomeClientPage({ profiles }: { profiles: HomeProfile[] }
                 height: "100%",
               }}
             />
+
+            {/* Gradient backdrop overlay for sharp contrast on button text */}
+            <div className="absolute inset-x-0 bottom-0 h-32 sm:h-36 bg-gradient-to-t from-[#230d10]/95 via-[#230d10]/60 to-transparent pointer-events-none z-10" />
+
+            {/* CTAs row positioned directly ON TOP of the poster image at the bottom */}
+            <div
+              ref={heroOverlayRef}
+              className="absolute inset-x-0 bottom-2.5 sm:bottom-4 z-20 px-3 sm:px-6"
+            >
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-2.5 sm:gap-4 max-w-[1400px] mx-auto">
+                <div className="hidden sm:flex gap-2 sm:gap-3 flex-wrap justify-center sm:justify-start">
+                  <span className="bg-rose-800/90 text-white px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-[9px] sm:text-[10px] font-heading font-bold uppercase tracking-widest border border-rose-400/30 shadow-soft">
+                    FITNESS × FINANCE
+                  </span>
+                  <span className="bg-white/10 backdrop-blur-md text-white px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-[9px] sm:text-[10px] font-heading font-bold uppercase tracking-widest border border-white/20 shadow-xs">
+                    Creator Portfolio
+                  </span>
+                </div>
+
+                <div className="flex gap-2 sm:gap-3 w-full sm:w-auto justify-center">
+                  <ArrowPillButton href="/work-with-me" size="sm" className="flex-1 sm:flex-initial text-center justify-center">
+                    Work With Me
+                  </ArrowPillButton>
+                  <Button
+                    href="/analytics"
+                    className="bg-white/10 hover:bg-white/20 border-white/20 text-white flex-1 sm:flex-initial text-center justify-center"
+                    size="sm"
+                  >
+                    View Media Kit
+                  </Button>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-
-        {/* CTAs row positioned neatly underneath the poster */}
-        <div
-          ref={heroOverlayRef}
-          className="relative w-full max-w-[1400px] z-20 mt-5 px-6"
-        >
-          <Container className="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div className="flex gap-3">
-              <span className="bg-rose-800/90 text-white px-3.5 py-1.5 rounded-full text-[10px] font-heading font-bold uppercase tracking-widest border border-rose-400/30 shadow-soft">
-                FITNESS × FINANCE
-              </span>
-              <span className="bg-white/10 backdrop-blur-md text-white px-3.5 py-1.5 rounded-full text-[10px] font-heading font-bold uppercase tracking-widest border border-white/20 shadow-xs">
-                Creator Portfolio
-              </span>
-            </div>
-
-            <div className="flex gap-3 w-full sm:w-auto">
-              <ArrowPillButton href="/work-with-me" size="md" className="flex-1 sm:flex-initial">
-                Work With Me
-              </ArrowPillButton>
-              <Button
-                href="/analytics"
-                className="bg-white/10 hover:bg-white/20 border-white/20 text-white flex-1 sm:flex-initial"
-                size="md"
-              >
-                View Media Kit
-              </Button>
-            </div>
-          </Container>
         </div>
       </section>
 

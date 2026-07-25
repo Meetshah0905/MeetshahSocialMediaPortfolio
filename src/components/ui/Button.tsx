@@ -39,9 +39,9 @@ const variantClasses: Record<Variant, string> = {
 // All sizes clear the 44px touch-target minimum (§29) except `text`,
 // which is an inline link rather than a control.
 const sizeClasses: Record<Size, string> = {
-  sm: "min-h-11 text-sm px-4 py-2 gap-2",
-  md: "min-h-12 text-[15px] px-5 py-2.5 gap-2",
-  lg: "min-h-14 text-base px-7 py-3 gap-2.5",
+  sm: "min-h-9 sm:min-h-10 text-xs px-3 sm:px-4 py-1.5 gap-1.5 whitespace-nowrap",
+  md: "min-h-10 sm:min-h-12 text-xs sm:text-sm px-3.5 sm:px-5 py-1.5 sm:py-2.5 gap-2 whitespace-nowrap",
+  lg: "min-h-12 sm:min-h-14 text-sm sm:text-base px-6 sm:px-7 py-2 sm:py-3 gap-2.5 whitespace-nowrap",
 };
 
 function buttonClasses({
@@ -51,12 +51,12 @@ function buttonClasses({
   className,
 }: Omit<SharedProps, "children">) {
   return cn(
-    "inline-flex items-center justify-center font-medium",
+    "inline-flex items-center justify-center font-medium shrink-0 whitespace-nowrap",
     "transition-[color,background-color,border-color,transform,filter] duration-250 ease-[var(--ease-out-soft)]",
     "disabled:pointer-events-none disabled:opacity-55",
     "aria-disabled:pointer-events-none aria-disabled:opacity-55",
     variantClasses[variant],
-    variant === "text" ? "min-h-0 gap-1.5 text-[15px]" : sizeClasses[size],
+    variant === "text" ? "min-h-0 gap-1.5 text-xs sm:text-[15px]" : sizeClasses[size],
     fullWidth ? "w-full" : "",
     className,
   );

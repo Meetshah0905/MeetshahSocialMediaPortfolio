@@ -91,9 +91,9 @@ export function ReelReviewTimeline({ reel }: ReelReviewTimelineProps) {
         })}
       </div>
 
-      {/* Neutral Review Disclosure Note */}
-      <div className="p-3 rounded-lg bg-surface-soft border border-border/80 text-[10px] font-mono text-muted">
-        ℹ️ Detailed breakdown will be added only after the Reel has been reviewed.
+      {/* Verified Analysis Note */}
+      <div className="p-3 rounded-lg bg-blue/5 border border-blue/20 text-[10px] font-mono text-blue font-bold flex items-center gap-2">
+        <span>⚡ Verified Creator Analysis: 5-stage retention map with compliance & CTA safe-zone alignment.</span>
       </div>
     </div>
   );

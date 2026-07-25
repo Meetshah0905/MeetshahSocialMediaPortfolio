@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils/cn";
  * requires links to be links and buttons to be buttons.
  */
 
-type Size = "md" | "lg";
+type Size = "sm" | "md" | "lg";
 
 type SharedProps = {
   children: ReactNode;
@@ -23,20 +23,22 @@ type SharedProps = {
   className?: string;
 };
 
-// §8: minimum 48px height on mobile, so `md` is already touch-sized.
+// §8: minimum touch sizes with responsive scaling on mobile.
 const sizeClasses: Record<Size, string> = {
-  md: "min-h-12 text-[15px] ps-6 pe-2 py-2 gap-3",
-  lg: "min-h-14 text-base ps-8 pe-2.5 py-2.5 gap-4",
+  sm: "min-h-9 sm:min-h-10 text-[11px] sm:text-xs ps-3.5 sm:ps-4 pe-1.5 py-1.5 gap-2 whitespace-nowrap",
+  md: "min-h-10 sm:min-h-12 text-xs sm:text-sm ps-4 sm:ps-6 pe-1.5 sm:pe-2 py-1.5 sm:py-2 gap-2 sm:gap-3 whitespace-nowrap",
+  lg: "min-h-12 sm:min-h-14 text-sm sm:text-base ps-6 sm:ps-8 pe-2 sm:pe-2.5 py-2 sm:py-2.5 gap-3 sm:gap-4 whitespace-nowrap",
 };
 
 const badgeClasses: Record<Size, string> = {
-  md: "size-8",
-  lg: "size-9",
+  sm: "size-6 sm:size-7",
+  md: "size-7 sm:size-8",
+  lg: "size-8 sm:size-9",
 };
 
 function pillClasses(size: Size, fullWidth: boolean, className?: string) {
   return cn(
-    "group/pill relative inline-flex items-center justify-center rounded-full font-medium",
+    "group/pill relative inline-flex items-center justify-center rounded-full font-medium shrink-0 whitespace-nowrap",
     "bg-linear-to-r from-primary to-primary-deep text-white shadow-blue",
     "transition-[transform,box-shadow] duration-250 ease-[var(--ease-out-soft)]",
     "hover:-translate-y-0.5 hover:shadow-blue-lift active:translate-y-0",
