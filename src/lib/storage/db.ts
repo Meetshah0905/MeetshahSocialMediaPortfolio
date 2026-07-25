@@ -443,6 +443,39 @@ function comparePublishedAtDesc(a: AnalyticsReport, b: AnalyticsReport): number 
   return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
 }
 
+declare global {
+  // eslint-disable-next-line no-var
+  var _reportsMemoryStore: AnalyticsReport[] | undefined;
+}
+
+function getMemoryReports(): AnalyticsReport[] {
+  const disk = readJSONFile<AnalyticsReport[]>(REPORTS_PATH, []);
+  if (!globalThis._reportsMemoryStore || globalThis._reportsMemoryStore.length === 0) {
+    globalThis._reportsMemoryStore = disk;
+    return disk;
+  }
+  // Merge disk items with memory store to preserve reports across hot reloads
+  const map = new Map<string, AnalyticsReport>();
+  for (const r of disk) map.set(r.id, r);
+  for (const r of globalThis._reportsMemoryStore) {
+    if (!map.has(r.id) || (r.updatedAt && map.get(r.id)!.updatedAt <= r.updatedAt)) {
+      map.set(r.id, r);
+    }
+  }
+  const merged = Array.from(map.values());
+  globalThis._reportsMemoryStore = merged;
+  return merged;
+}
+
+function updateMemoryReports(reports: AnalyticsReport[]): void {
+  globalThis._reportsMemoryStore = reports;
+  try {
+    writeJSONFile(REPORTS_PATH, reports);
+  } catch (err) {
+    console.warn("FS write skipped/failed, in-memory store preserved:", err);
+  }
+}
+
 export async function getReport(id: string): Promise<AnalyticsReport | null> {
   if (redis) {
     const direct = await redis.get<AnalyticsReport>(REPORT_KEY(id));
@@ -450,32 +483,31 @@ export async function getReport(id: string): Promise<AnalyticsReport | null> {
     const all = await loadAllReports();
     return all.find((r) => r.id === id || r.slug === id) || null;
   }
-  const list = readJSONFile<AnalyticsReport[]>(REPORTS_PATH, []);
+  const list = getMemoryReports();
   return list.find((r) => r.id === id || r.slug === id) || null;
 }
 
 export async function saveReport(report: AnalyticsReport): Promise<void> {
   if (redis) {
     await redis.set(REPORT_KEY(report.id), report);
-    return;
   }
-  const list = readJSONFile<AnalyticsReport[]>(REPORTS_PATH, []);
+  const list = getMemoryReports();
   const idx = list.findIndex((r) => r.id === report.id);
   if (idx >= 0) {
     list[idx] = report;
   } else {
     list.push(report);
   }
-  writeJSONFile(REPORTS_PATH, list);
+  updateMemoryReports(list);
 }
 
 export async function deleteReport(id: string): Promise<void> {
   if (redis) {
     await redis.del(REPORT_KEY(id));
-    return;
   }
-  const list = readJSONFile<AnalyticsReport[]>(REPORTS_PATH, []);
-  writeJSONFile(REPORTS_PATH, list.filter((r) => r.id !== id));
+  const list = getMemoryReports();
+  const filtered = list.filter((r) => r.id !== id);
+  updateMemoryReports(filtered);
 }
 
 export type ListReportsOptions = {
@@ -493,9 +525,9 @@ async function loadAllReports(): Promise<AnalyticsReport[]> {
       const r = await redis.get<AnalyticsReport>(key);
       if (r) list.push(r);
     }
-    return list;
+    if (list.length > 0) return list;
   }
-  return readJSONFile<AnalyticsReport[]>(REPORTS_PATH, []);
+  return getMemoryReports();
 }
 
 export async function listReports(

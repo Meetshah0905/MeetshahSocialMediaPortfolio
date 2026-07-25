@@ -1,0 +1,296 @@
+[
+  {
+    "id": "audit-1784541885993",
+    "adminId": "admin@meetshah.com",
+    "action": "LOGIN",
+    "entityType": "AUTH",
+    "createdAt": "2026-07-20T10:04:45.993Z"
+  },
+  {
+    "id": "audit-1784543930183",
+    "adminId": "admin",
+    "action": "UPDATE_AUDIENCE_COUNT",
+    "entityType": "CHANNEL",
+    "entityId": "instagram-fitness",
+    "previousValue": 11900,
+    "newValue": 12000,
+    "createdAt": "2026-07-20T10:38:50.182Z"
+  },
+  {
+    "id": "audit-1784543950805",
+    "adminId": "admin",
+    "action": "UPDATE_AUDIENCE_COUNT",
+    "entityType": "CHANNEL",
+    "entityId": "instagram-finance",
+    "previousValue": 15100,
+    "newValue": 15300,
+    "createdAt": "2026-07-20T10:39:10.804Z"
+  },
+  {
+    "id": "audit-1784618926578",
+    "adminId": "admin",
+    "action": "LOGIN",
+    "entityType": "AUTH",
+    "createdAt": "2026-07-21T07:28:46.578Z"
+  },
+  {
+    "id": "audit-1784618927890",
+    "adminId": "admin",
+    "action": "UPDATE_AUDIENCE_COUNT",
+    "entityType": "CHANNEL",
+    "entityId": "instagram-fitness",
+    "previousValue": 12000,
+    "newValue": 12100,
+    "createdAt": "2026-07-21T07:28:47.888Z"
+  },
+  {
+    "id": "audit-1784618947395",
+    "adminId": "admin",
+    "action": "SAVE_DRAFT_REPORT",
+    "entityType": "REPORT",
+    "entityId": "instagram_fitness-2026-06-21-1784618947394",
+    "createdAt": "2026-07-21T07:29:07.394Z"
+  },
+  {
+    "id": "audit-1784618959950",
+    "adminId": "admin",
+    "action": "UPDATE_AUDIENCE_COUNT",
+    "entityType": "CHANNEL",
+    "entityId": "instagram-fitness",
+    "previousValue": 12100,
+    "newValue": 12000,
+    "createdAt": "2026-07-21T07:29:19.948Z"
+  },
+  {
+    "id": "audit-1784622766192",
+    "adminId": "admin",
+    "action": "LOGIN",
+    "entityType": "AUTH",
+    "createdAt": "2026-07-21T08:32:46.192Z"
+  },
+  {
+    "id": "audit-1784622777812",
+    "adminId": "admin",
+    "action": "UPDATE_AUDIENCE_COUNT",
+    "entityType": "CHANNEL",
+    "entityId": "youtube-main",
+    "previousValue": 19694,
+    "newValue": 19700,
+    "createdAt": "2026-07-21T08:32:57.811Z"
+  },
+  {
+    "id": "audit-1784623148143",
+    "adminId": "admin",
+    "action": "LOGIN",
+    "entityType": "AUTH",
+    "createdAt": "2026-07-21T08:39:08.143Z"
+  },
+  {
+    "id": "audit-1784623689663",
+    "adminId": "admin",
+    "action": "LOGIN",
+    "entityType": "AUTH",
+    "createdAt": "2026-07-21T08:48:09.663Z"
+  },
+  {
+    "id": "audit-1784826320209",
+    "adminId": "admin",
+    "action": "LOGIN",
+    "entityType": "AUTH",
+    "createdAt": "2026-07-23T17:05:20.209Z"
+  },
+  {
+    "id": "audit-1784826320626",
+    "adminId": "admin",
+    "action": "CREATE_DRAFT_REPORT",
+    "entityType": "REPORT",
+    "entityId": "instagram-fitness-2026-06-23-q5k25d",
+    "createdAt": "2026-07-23T17:05:20.625Z"
+  },
+  {
+    "id": "audit-1784826322277",
+    "adminId": "admin",
+    "action": "UPLOAD_REPORT_PDF",
+    "entityType": "REPORT",
+    "entityId": "instagram-fitness-2026-06-23-q5k25d",
+    "createdAt": "2026-07-23T17:05:22.277Z"
+  },
+  {
+    "id": "audit-1784826323468",
+    "adminId": "admin",
+    "action": "PUBLISH_REPORT",
+    "entityType": "REPORT",
+    "entityId": "instagram-fitness-2026-06-23-q5k25d",
+    "createdAt": "2026-07-23T17:05:23.467Z"
+  },
+  {
+    "id": "audit-1784826369286",
+    "adminId": "admin",
+    "action": "LOGIN",
+    "entityType": "AUTH",
+    "createdAt": "2026-07-23T17:06:09.286Z"
+  },
+  {
+    "id": "audit-1784827301037",
+    "adminId": "admin",
+    "action": "LOGIN",
+    "entityType": "AUTH",
+    "createdAt": "2026-07-23T17:21:41.037Z"
+  },
+  {
+    "id": "audit-1784827314885",
+    "adminId": "admin",
+    "action": "DELETE_REPORT",
+    "entityType": "REPORT",
+    "entityId": "instagram-fitness-2026-06-23-q5k25d",
+    "createdAt": "2026-07-23T17:21:54.885Z"
+  },
+  {
+    "id": "audit-1784827359676",
+    "adminId": "admin",
+    "action": "CREATE_DRAFT_REPORT",
+    "entityType": "REPORT",
+    "entityId": "instagram-fitness-2026-06-23-9xymrq",
+    "createdAt": "2026-07-23T17:22:39.675Z"
+  },
+  {
+    "id": "audit-1784827359737",
+    "adminId": "admin",
+    "action": "UPLOAD_REPORT_PDF",
+    "entityType": "REPORT",
+    "entityId": "instagram-fitness-2026-06-23-9xymrq",
+    "createdAt": "2026-07-23T17:22:39.737Z"
+  },
+  {
+    "id": "audit-1784827359788",
+    "adminId": "admin",
+    "action": "PUBLISH_REPORT",
+    "entityType": "REPORT",
+    "entityId": "instagram-fitness-2026-06-23-9xymrq",
+    "createdAt": "2026-07-23T17:22:39.787Z"
+  },
+  {
+    "id": "audit-1784827926191",
+    "adminId": "admin",
+    "action": "LOGIN",
+    "entityType": "AUTH",
+    "createdAt": "2026-07-23T17:32:06.191Z"
+  },
+  {
+    "id": "audit-1784827926453",
+    "adminId": "admin",
+    "action": "CREATE_DRAFT_REPORT",
+    "entityType": "REPORT",
+    "entityId": "instagram-finance-2026-06-23-mtr0gz",
+    "createdAt": "2026-07-23T17:32:06.452Z"
+  },
+  {
+    "id": "audit-1784827926793",
+    "adminId": "admin",
+    "action": "UPLOAD_REPORT_PDF",
+    "entityType": "REPORT",
+    "entityId": "instagram-finance-2026-06-23-mtr0gz",
+    "createdAt": "2026-07-23T17:32:06.793Z"
+  },
+  {
+    "id": "audit-1784827926912",
+    "adminId": "admin",
+    "action": "PUBLISH_REPORT",
+    "entityType": "REPORT",
+    "entityId": "instagram-finance-2026-06-23-mtr0gz",
+    "createdAt": "2026-07-23T17:32:06.911Z"
+  },
+  {
+    "id": "audit-1784827927087",
+    "adminId": "admin",
+    "action": "CREATE_DRAFT_REPORT",
+    "entityType": "REPORT",
+    "entityId": "instagram-finance-2026-04-24-3czojh",
+    "createdAt": "2026-07-23T17:32:07.086Z"
+  },
+  {
+    "id": "audit-1784827927312",
+    "adminId": "admin",
+    "action": "UPLOAD_REPORT_PDF",
+    "entityType": "REPORT",
+    "entityId": "instagram-finance-2026-04-24-3czojh",
+    "createdAt": "2026-07-23T17:32:07.312Z"
+  },
+  {
+    "id": "audit-1784827927390",
+    "adminId": "admin",
+    "action": "PUBLISH_REPORT",
+    "entityType": "REPORT",
+    "entityId": "instagram-finance-2026-04-24-3czojh",
+    "createdAt": "2026-07-23T17:32:07.389Z"
+  },
+  {
+    "id": "audit-1784827949802",
+    "adminId": "admin",
+    "action": "LOGIN",
+    "entityType": "AUTH",
+    "createdAt": "2026-07-23T17:32:29.802Z"
+  },
+  {
+    "id": "audit-1784830015312",
+    "adminId": "admin",
+    "action": "DELETE_REPORT",
+    "entityType": "REPORT",
+    "entityId": "instagram-finance-2026-06-23-mtr0gz",
+    "createdAt": "2026-07-23T18:06:55.312Z"
+  },
+  {
+    "id": "audit-1784830016881",
+    "adminId": "admin",
+    "action": "DELETE_REPORT",
+    "entityType": "REPORT",
+    "entityId": "instagram-finance-2026-04-24-3czojh",
+    "createdAt": "2026-07-23T18:06:56.881Z"
+  },
+  {
+    "id": "audit-1784830121464",
+    "adminId": "admin",
+    "action": "CREATE_DRAFT_REPORT",
+    "entityType": "REPORT",
+    "entityId": "instagram-finance-2026-04-23-vsl9pn",
+    "createdAt": "2026-07-23T18:08:41.463Z"
+  },
+  {
+    "id": "audit-1784830122659",
+    "adminId": "admin",
+    "action": "UPLOAD_REPORT_PDF",
+    "entityType": "REPORT",
+    "entityId": "instagram-finance-2026-04-23-vsl9pn",
+    "createdAt": "2026-07-23T18:08:42.659Z"
+  },
+  {
+    "id": "audit-1784830127403",
+    "adminId": "admin",
+    "action": "PUBLISH_REPORT",
+    "entityType": "REPORT",
+    "entityId": "instagram-finance-2026-04-23-vsl9pn",
+    "createdAt": "2026-07-23T18:08:47.402Z"
+  },
+  {
+    "id": "audit-1784830145016",
+    "adminId": "admin",
+    "action": "PUBLISH_REPORT",
+    "entityType": "REPORT",
+    "entityId": "instagram-fitness-2026-06-23-9xymrq",
+    "createdAt": "2026-07-23T18:09:05.015Z"
+  },
+  {
+    "id": "audit-1784899128222",
+    "adminId": "admin",
+    "action": "LOGIN",
+    "entityType": "AUTH",
+    "createdAt": "2026-07-24T13:18:48.222Z"
+  },
+  {
+    "id": "audit-1784900606363",
+    "adminId": "admin",
+    "action": "LOGIN",
+    "entityType": "AUTH",
+    "createdAt": "2026-07-24T13:43:26.363Z"
+  }
+]

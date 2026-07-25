@@ -23,11 +23,13 @@ out/
 *.sqlite-journal
 *.db
 *.db-journal
-data/
+data/*.tmp*
+!data/*.json
 
 # Runtime uploads
-uploads/
-public/uploads/
+uploads/*.tmp*
+!public/uploads/reports/
+!public/uploads/report-covers/
 
 # Logs
 *.log

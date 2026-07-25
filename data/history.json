@@ -1,0 +1,52 @@
+[
+  {
+    "id": "hist-1784543930182",
+    "channelId": "instagram-fitness",
+    "previousValue": 11900,
+    "newValue": 12000,
+    "source": "manual-admin",
+    "effectiveDate": "2026-07-20T10:38:50.182Z",
+    "changedByAdminId": "admin",
+    "createdAt": "2026-07-20T10:38:50.182Z"
+  },
+  {
+    "id": "hist-1784543950805",
+    "channelId": "instagram-finance",
+    "previousValue": 15100,
+    "newValue": 15300,
+    "source": "manual-admin",
+    "effectiveDate": "2026-07-20T10:39:10.804Z",
+    "changedByAdminId": "admin",
+    "createdAt": "2026-07-20T10:39:10.804Z"
+  },
+  {
+    "id": "hist-1784618927889",
+    "channelId": "instagram-fitness",
+    "previousValue": 12000,
+    "newValue": 12100,
+    "source": "manual-admin",
+    "effectiveDate": "2026-07-21T07:28:47.888Z",
+    "changedByAdminId": "admin",
+    "createdAt": "2026-07-21T07:28:47.888Z"
+  },
+  {
+    "id": "hist-1784618959949",
+    "channelId": "instagram-fitness",
+    "previousValue": 12100,
+    "newValue": 12000,
+    "source": "manual-admin",
+    "effectiveDate": "2026-07-21T07:29:19.948Z",
+    "changedByAdminId": "admin",
+    "createdAt": "2026-07-21T07:29:19.948Z"
+  },
+  {
+    "id": "hist-1784622777812",
+    "channelId": "youtube-main",
+    "previousValue": 19694,
+    "newValue": 19700,
+    "source": "manual-admin",
+    "effectiveDate": "2026-07-21T08:32:57.811Z",
+    "changedByAdminId": "admin",
+    "createdAt": "2026-07-21T08:32:57.811Z"
+  }
+]
