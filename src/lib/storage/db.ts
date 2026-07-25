@@ -434,11 +434,150 @@ export async function getAudienceMetricHistory(
 
 const REPORT_KEY = (id: string) => `analytics-report:${id}`;
 
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseSecretKey =
+  process.env.SUPABASE_SECRET_KEY ||
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+
+const isSupabaseDbConfigured = Boolean(supabaseUrl && supabaseSecretKey);
+
+export function checkStorageConfig() {
+  return {
+    hasSupabaseUrl: Boolean(supabaseUrl),
+    hasPublishableKey: Boolean(process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY),
+    hasSecretKey: Boolean(process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY),
+    hasRedis: Boolean(isRedisConfigured),
+    storageMode: isSupabaseDbConfigured ? "supabase" : isRedisConfigured ? "redis" : "local-memory",
+  };
+}
+
+function reportToDbRow(report: AnalyticsReport) {
+  return {
+    id: report.id,
+    slug: report.slug,
+    channel: report.channel,
+    report_window: report.reportWindow,
+    period_start: report.periodStart,
+    period_end: report.periodEnd,
+    title: report.title,
+    executive_summary: report.executiveSummary || null,
+    highlights: report.highlights || [],
+    metrics: report.metrics || {},
+    pdf_url: report.pdfUrl || "",
+    pdf_storage_path: report.pdfStorageKey || "",
+    original_pdf_filename: report.originalPdfFilename || "",
+    pdf_size_bytes: report.pdfSizeBytes || 0,
+    cover_storage_path: report.coverImageStorageKey || report.coverImageUrl || null,
+    status: report.status || "draft",
+    published_at: report.publishedAt || null,
+    created_by: report.createdByAdminId || "admin",
+    created_at: report.createdAt || new Date().toISOString(),
+    updated_at: report.updatedAt || new Date().toISOString(),
+  };
+}
+
+function dbRowToReport(row: Record<string, any>): AnalyticsReport {
+  return {
+    id: row.id,
+    slug: row.slug,
+    channel: row.channel as ChannelSlug,
+    reportWindow: row.report_window as ReportWindow,
+    periodStart: row.period_start,
+    periodEnd: row.period_end,
+    title: row.title,
+    executiveSummary: row.executive_summary || undefined,
+    highlights: row.highlights || [],
+    metrics: row.metrics || {},
+    pdfUrl: row.pdf_url || undefined,
+    pdfStorageKey: row.pdf_storage_path || undefined,
+    originalPdfFilename: row.original_pdf_filename || undefined,
+    pdfSizeBytes: row.pdf_size_bytes ? Number(row.pdf_size_bytes) : 0,
+    coverImageUrl: row.cover_storage_path || undefined,
+    status: row.status as ReportStatus,
+    publishedAt: row.published_at || undefined,
+    createdByAdminId: row.created_by || "admin",
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+async function loadAllReportsFromSupabase(): Promise<AnalyticsReport[] | null> {
+  if (!isSupabaseDbConfigured || !supabaseUrl || !supabaseSecretKey) return null;
+  try {
+    const endpoint = `${supabaseUrl.replace(/\/$/, "")}/rest/v1/analytics_reports?select=*`;
+    const res = await fetch(endpoint, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${supabaseSecretKey}`,
+        apikey: supabaseSecretKey,
+        "Content-Type": "application/json",
+      },
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      console.warn("Supabase database select failed:", await res.text());
+      return null;
+    }
+    const rows = await res.json();
+    if (!Array.isArray(rows)) return null;
+    return rows.map(dbRowToReport);
+  } catch (err) {
+    console.warn("Supabase database select exception:", err);
+    return null;
+  }
+}
+
+async function saveReportToSupabase(report: AnalyticsReport): Promise<boolean> {
+  if (!isSupabaseDbConfigured || !supabaseUrl || !supabaseSecretKey) return false;
+  try {
+    const endpoint = `${supabaseUrl.replace(/\/$/, "")}/rest/v1/analytics_reports`;
+    const row = reportToDbRow(report);
+    const res = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${supabaseSecretKey}`,
+        apikey: supabaseSecretKey,
+        "Content-Type": "application/json",
+        Prefer: "resolution=merge-duplicates,return=representation",
+      },
+      body: JSON.stringify(row),
+    });
+    if (!res.ok) {
+      console.warn("Supabase database save failed:", await res.text());
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.warn("Supabase database save exception:", err);
+    return false;
+  }
+}
+
+async function deleteReportFromSupabase(id: string): Promise<boolean> {
+  if (!isSupabaseDbConfigured || !supabaseUrl || !supabaseSecretKey) return false;
+  try {
+    const endpoint = `${supabaseUrl.replace(/\/$/, "")}/rest/v1/analytics_reports?id=eq.${encodeURIComponent(id)}`;
+    const res = await fetch(endpoint, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${supabaseSecretKey}`,
+        apikey: supabaseSecretKey,
+        "Content-Type": "application/json",
+      },
+    });
+    return res.ok;
+  } catch (err) {
+    console.warn("Supabase database delete exception:", err);
+    return false;
+  }
+}
+
 function isPublished(r: AnalyticsReport): boolean {
   return r.status === "published" && !!r.publishedAt;
 }
 
-/** publishedAt DESC, then createdAt DESC — matches spec §16. */
 function comparePublishedAtDesc(a: AnalyticsReport, b: AnalyticsReport): number {
   const ap = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
   const bp = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
@@ -457,7 +596,6 @@ function getMemoryReports(): AnalyticsReport[] {
     globalThis._reportsMemoryStore = disk;
     return disk;
   }
-  // Merge disk items with memory store to preserve reports across hot reloads
   const map = new Map<string, AnalyticsReport>();
   for (const r of disk) map.set(r.id, r);
   for (const r of globalThis._reportsMemoryStore) {
@@ -480,17 +618,12 @@ function updateMemoryReports(reports: AnalyticsReport[]): void {
 }
 
 export async function getReport(id: string): Promise<AnalyticsReport | null> {
-  if (redis) {
-    const direct = await redis.get<AnalyticsReport>(REPORT_KEY(id));
-    if (direct) return direct;
-    const all = await loadAllReports();
-    return all.find((r) => r.id === id || r.slug === id) || null;
-  }
-  const list = getMemoryReports();
-  return list.find((r) => r.id === id || r.slug === id) || null;
+  const all = await loadAllReports();
+  return all.find((r) => r.id === id || r.slug === id) || null;
 }
 
 export async function saveReport(report: AnalyticsReport): Promise<void> {
+  await saveReportToSupabase(report);
   if (redis) {
     await redis.set(REPORT_KEY(report.id), report);
   }
@@ -505,6 +638,7 @@ export async function saveReport(report: AnalyticsReport): Promise<void> {
 }
 
 export async function deleteReport(id: string): Promise<void> {
+  await deleteReportFromSupabase(id);
   if (redis) {
     await redis.del(REPORT_KEY(id));
   }
@@ -521,6 +655,11 @@ export type ListReportsOptions = {
 };
 
 async function loadAllReports(): Promise<AnalyticsReport[]> {
+  const supabaseReports = await loadAllReportsFromSupabase();
+  if (supabaseReports && supabaseReports.length > 0) {
+    return supabaseReports;
+  }
+
   if (redis) {
     const keys = await redis.keys("analytics-report:*");
     const list: AnalyticsReport[] = [];
