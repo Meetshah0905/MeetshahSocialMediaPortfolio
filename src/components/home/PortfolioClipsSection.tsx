@@ -201,7 +201,19 @@ export function PortfolioClipsSection() {
     zIndex: number;
     pointerEvents: React.CSSProperties["pointerEvents"];
   } => {
-    const relativeIndex = index - selectedIndex;
+    const total = filteredShorts.length;
+    let relativeIndex = index - selectedIndex;
+
+    // Enable circular looping so left side is always filled with cards (§Infinite Loop)
+    if (total > 2) {
+      const half = Math.floor(total / 2);
+      if (relativeIndex > half) {
+        relativeIndex -= total;
+      } else if (relativeIndex < -half) {
+        relativeIndex += total;
+      }
+    }
+
     const absRel = Math.abs(relativeIndex);
 
     // Initial Stacked Composition (before fanning out) (§2)
@@ -367,7 +379,7 @@ export function PortfolioClipsSection() {
         </div>
 
         {/* Category Filter Pills Bar */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-8 scrollbar-none border-b border-border/60">
+        <div className="flex items-center justify-start md:justify-center gap-2 overflow-x-auto pb-4 mb-8 scrollbar-none border-b border-border/60">
           {CATEGORIES.map((cat) => {
             const count = cat === "ALL"
               ? portfolioShorts.length
