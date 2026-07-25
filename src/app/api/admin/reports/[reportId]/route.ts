@@ -116,6 +116,9 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   }
 }
 
+import { invalidateReportCaches } from "@/lib/storage/cacheInvalidation";
+import { blobExists } from "@/lib/storage/pdfBlob";
+
 export async function DELETE(request: NextRequest, { params }: Params) {
   try {
     if (!(await isAuthenticated(request))) {
@@ -127,15 +130,43 @@ export async function DELETE(request: NextRequest, { params }: Params) {
       return NextResponse.json({ error: "Report not found" }, { status: 404 });
     }
 
+    let pdfWasAlreadyMissing = false;
+    let pdfDeleted = false;
+
     if (existing.pdfStorageKey) {
-      await deleteStoredBlob(existing.pdfStorageKey);
-      await deleteReportFromStorage(existing.pdfStorageKey);
+      try {
+        const exists = await blobExists(existing.pdfStorageKey);
+        if (!exists) {
+          pdfWasAlreadyMissing = true;
+        } else {
+          await deleteStoredBlob(existing.pdfStorageKey);
+          await deleteReportFromStorage(existing.pdfStorageKey);
+          pdfDeleted = true;
+        }
+      } catch (storageErr) {
+        console.warn("Storage deletion warning (proceeding with DB delete):", storageErr);
+      }
+    } else {
+      pdfWasAlreadyMissing = true;
     }
+
     if (existing.coverImageStorageKey) {
-      await deleteStoredBlob(existing.coverImageStorageKey);
-      await deleteReportFromStorage(existing.coverImageStorageKey);
+      try {
+        await deleteStoredBlob(existing.coverImageStorageKey);
+        await deleteReportFromStorage(existing.coverImageStorageKey);
+      } catch {
+        // Ignored
+      }
     }
+
+    // Always delete the database record idempotently
     await deleteReport(existing.id);
+    if (existing.slug && existing.slug !== existing.id) {
+      await deleteReport(existing.slug);
+    }
+
+    // Invalidate caches across public and admin pages
+    invalidateReportCaches(existing.channel, existing.slug);
 
     await logAdminAction({
       id: `audit-${Date.now()}`,
@@ -152,9 +183,17 @@ export async function DELETE(request: NextRequest, { params }: Params) {
       pdfStorageKey: existing.pdfStorageKey,
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({
+      success: true,
+      databaseRecordDeleted: true,
+      pdfDeleted,
+      pdfWasAlreadyMissing,
+    });
   } catch (err) {
     console.error("Report delete failed:", err);
-    return NextResponse.json({ error: "Failed to delete report" }, { status: 500 });
+    return NextResponse.json(
+      { error: "The report was not deleted. Review the error and try again." },
+      { status: 500 },
+    );
   }
 }

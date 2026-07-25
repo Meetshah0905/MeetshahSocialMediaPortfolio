@@ -3,6 +3,8 @@ import { isAuthenticated } from "@/lib/auth/session";
 import { getReport, saveReport, logAdminAction } from "@/lib/storage/db";
 import { blobExists } from "@/lib/storage/pdfBlob";
 
+import { invalidateReportCaches } from "@/lib/storage/cacheInvalidation";
+
 type Params = { params: Promise<{ reportId: string }> };
 
 export async function POST(request: NextRequest, { params }: Params) {
@@ -42,6 +44,8 @@ export async function POST(request: NextRequest, { params }: Params) {
       updatedAt: now,
     };
     await saveReport(updated);
+
+    invalidateReportCaches(existing.channel, existing.slug);
 
     await logAdminAction({
       id: `audit-${Date.now()}`,
