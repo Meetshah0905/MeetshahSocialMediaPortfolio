@@ -444,18 +444,27 @@ export function BatchReportForm() {
     );
   };
 
-  const previewPublishReady = () => {
-    // A report is publish-ready when it's already saved AND has a PDF (uploaded
-    // or staged for this run). Reports still needing a PDF are flagged in the
-    // per-panel status; they will not be included in the confirmation list.
-    const savedWithPdf = panels.filter(
+  const previewPublishReady = async () => {
+    setError(null);
+    setNotice(null);
+
+    // Auto-save any staged or unsaved panels with PDFs so the user can publish directly
+    let currentPanels = panels;
+    const unsavedWithPdf = currentPanels.filter((p) => (!p.reportId || !p.pdfUploaded) && p.pdfFile);
+    if (unsavedWithPdf.length > 0 || currentPanels.some((p) => !p.reportId)) {
+      setBusy(true);
+      currentPanels = await runSequentially(savePanel);
+      setBusy(false);
+    }
+
+    const readyToPublish = currentPanels.filter(
       (p) => p.reportId && (p.pdfUploaded || p.pdfFile),
     );
-    if (savedWithPdf.length === 0) {
-      setError("Save drafts and attach PDFs first. Nothing is ready to publish yet.");
+    if (readyToPublish.length === 0) {
+      setError("Please attach a PDF file to at least one report window before publishing.");
       return;
     }
-    setConfirmPublish(savedWithPdf.map((p) => ({ panel: p, title: p.title })));
+    setConfirmPublish(readyToPublish.map((p) => ({ panel: p, title: p.title })));
   };
 
   const doPublish = async () => {

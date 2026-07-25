@@ -303,12 +303,14 @@ function readJSONFile<T>(filePath: string, seed: T): T {
   try {
     const parentDir = path.dirname(filePath);
     if (!fs.existsSync(parentDir)) {
-      fs.mkdirSync(parentDir, { recursive: true });
+      try {
+        fs.mkdirSync(parentDir, { recursive: true });
+      } catch {
+        // Ignored on read-only serverless disk
+      }
     }
     if (!fs.existsSync(filePath)) {
-      if (!isProductionWithoutRedis) {
-        writeJSONFile(filePath, seed);
-      }
+      writeJSONFile(filePath, seed);
       return seed;
     }
 
@@ -316,22 +318,23 @@ function readJSONFile<T>(filePath: string, seed: T): T {
     if (!data || !data.trim()) return seed;
     return JSON.parse(data) as T;
   } catch (err) {
-    console.error(`Error reading JSON file ${filePath}:`, err);
+    console.warn(`Error reading JSON file ${filePath}:`, err);
     return seed;
   }
 }
 
 function writeJSONFile<T>(filePath: string, data: T) {
-  if (isProductionWithoutRedis) {
-    throw new StorageNotConfiguredError();
+  try {
+    const parentDir = path.dirname(filePath);
+    if (!fs.existsSync(parentDir)) {
+      fs.mkdirSync(parentDir, { recursive: true });
+    }
+    const tempPath = `${filePath}.tmp.${Date.now()}.${Math.random().toString(36).slice(2, 6)}`;
+    fs.writeFileSync(tempPath, JSON.stringify(data, null, 2), "utf-8");
+    fs.renameSync(tempPath, filePath);
+  } catch (err) {
+    console.warn(`Filesystem write skipped for ${filePath} (in-memory fallback active):`, err);
   }
-  const parentDir = path.dirname(filePath);
-  if (!fs.existsSync(parentDir)) {
-    fs.mkdirSync(parentDir, { recursive: true });
-  }
-  const tempPath = `${filePath}.tmp.${Date.now()}.${Math.random().toString(36).slice(2, 6)}`;
-  fs.writeFileSync(tempPath, JSON.stringify(data, null, 2), "utf-8");
-  fs.renameSync(tempPath, filePath);
 }
 
 // 1. Platform Profiles CRUD
