@@ -19,6 +19,7 @@ import { CreatorIdentitySection } from "@/components/home/CreatorIdentitySection
 import { CreativeStrategySection } from "@/components/home/CreativeStrategySection";
 import { CreatorPillars } from "@/components/home/CreatorPillars";
 import { ServicesSection } from "@/components/home/ServicesSection";
+import { BrandCarousel } from "@/components/home/BrandCarousel";
 
 // Register ScrollTrigger plugin
 if (typeof window !== "undefined") {
@@ -234,6 +235,9 @@ export default function HomeClientPage({ profiles }: { profiles: HomeProfile[] }
 
       {/* 4. CREATOR IDENTITY SECTION */}
       <CreatorIdentitySection />
+
+      {/* 4.5. BRAND CAROUSEL (TRUSTED CLIENT LOGOS) */}
+      <BrandCarousel />
 
       {/* 5. PORTFOLIO CLIPS (REBUILT CAROUSEL + MODAL) */}
       <PortfolioClipsSection />

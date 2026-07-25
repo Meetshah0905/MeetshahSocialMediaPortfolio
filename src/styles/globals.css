@@ -296,3 +296,20 @@ html.lenis body {
   scroll-margin-top: calc(var(--header-height, 80px) + 24px);
 }
 
+/* ==========================================================================
+   MARQUEE CAROUSEL ANIMATION
+   ========================================================================== */
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 25s linear infinite;
+}
+
+
