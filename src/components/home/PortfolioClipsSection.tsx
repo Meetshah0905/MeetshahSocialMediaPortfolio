@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
-import useEmblaCarousel from "embla-carousel-react";
-import { Play, ArrowLeft, ArrowRight, ExternalLink, X, Flame, Sparkles, Activity, Eye, Zap } from "lucide-react";
+import { Play, ArrowLeft, ArrowRight, ExternalLink, X, Flame, Activity, Zap } from "lucide-react";
 import { portfolioShorts, getYouTubeThumbnail, getYouTubeFallbackThumbnail, type PortfolioShort } from "@/content/portfolioShorts";
 import { trackMediaUsage } from "@/lib/mediaRegistry";
 import { Badge } from "@/components/ui/Badge";
@@ -29,29 +28,146 @@ const METRICS_MAP: Record<string, { views: string; retention: string; hookScore:
 
 export function PortfolioClipsSection() {
   const [activeCategory, setActiveCategory] = useState<CategoryFilter>("ALL");
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [activeModalShort, setActiveModalShort] = useState<PortfolioShort | null>(null);
+  const [failedThumbnails, setFailedThumbnails] = useState<Record<string, boolean>>({});
+
+  // Animation states
+  const [hasEntered, setHasEntered] = useState(false);
+  const [isFannedOut, setIsFannedOut] = useState(false);
+  const [isFiltering, setIsFiltering] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [parallaxOffset, setParallaxOffset] = useState({ x: 0, y: 0 });
+
+  // Touch & Swipe tracking
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const triggerButtonRef = useRef<HTMLButtonElement | null>(null);
 
   const filteredShorts = activeCategory === "ALL"
     ? portfolioShorts
     : portfolioShorts.filter((s) => s.category === activeCategory);
 
-  const [emblaRef, emblaApi] = useEmblaCarousel({
-    loop: true,
-    align: "center",
-    skipSnaps: false,
-  });
-
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const [activeModalShort, setActiveModalShort] = useState<PortfolioShort | null>(null);
-  const [failedThumbnails, setFailedThumbnails] = useState<Record<string, boolean>>({});
-  const triggerButtonRef = useRef<HTMLButtonElement | null>(null);
-
-  // Reset index on category change
+  // Responsive & Reduced Motion Detection
   useEffect(() => {
-    setSelectedIndex(0);
-    if (emblaApi) emblaApi.scrollTo(0);
-  }, [activeCategory, emblaApi]);
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
 
-  // Modal control functions
+    const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setPrefersReducedMotion(motionQuery.matches);
+
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // Section Entry Trigger via IntersectionObserver (§15)
+  useEffect(() => {
+    if (!sectionRef.current || hasEntered) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setHasEntered(true);
+          observer.disconnect();
+
+          if (prefersReducedMotion) {
+            setIsFannedOut(true);
+            return;
+          }
+
+          // Initial opening stack sequence: hold briefly (300ms) then fan out outward
+          const timer = setTimeout(() => {
+            setIsFannedOut(true);
+          }, 350);
+
+          return () => clearTimeout(timer);
+        }
+      },
+      { threshold: 0.25 }
+    );
+
+    observer.observe(sectionRef.current);
+    return () => observer.disconnect();
+  }, [hasEntered, prefersReducedMotion]);
+
+  // Reset selected index when active category changes (§8)
+  const handleCategoryChange = (cat: CategoryFilter) => {
+    if (cat === activeCategory) return;
+    setIsFiltering(true);
+    setActiveCategory(cat);
+    setSelectedIndex(0);
+
+    setTimeout(() => {
+      setIsFiltering(false);
+    }, 280);
+  };
+
+  // Navigation handlers
+  const scrollPrev = useCallback(() => {
+    setSelectedIndex((prev) => (prev > 0 ? prev - 1 : filteredShorts.length - 1));
+  }, [filteredShorts.length]);
+
+  const scrollNext = useCallback(() => {
+    setSelectedIndex((prev) => (prev < filteredShorts.length - 1 ? prev + 1 : 0));
+  }, [filteredShorts.length]);
+
+  // Touch Swipe Handlers (§9, §10)
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null || touchStartY.current === null) return;
+    const deltaX = e.changedTouches[0].clientX - touchStartX.current;
+    const deltaY = e.changedTouches[0].clientY - touchStartY.current;
+
+    // Only swipe horizontally if X movement exceeds Y movement (allow natural vertical scrolling)
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 40) {
+      if (deltaX > 0) {
+        scrollPrev();
+      } else {
+        scrollNext();
+      }
+    }
+    touchStartX.current = null;
+    touchStartY.current = null;
+  };
+
+  // Desktop Mouse Parallax (§7)
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isMobile || prefersReducedMotion) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = (e.clientX - rect.left - rect.width / 2) / (rect.width / 2);
+    const y = (e.clientY - rect.top - rect.height / 2) / (rect.height / 2);
+    setParallaxOffset({ x: x * 6, y: y * 4 });
+  };
+
+  const handleMouseLeave = () => {
+    setParallaxOffset({ x: 0, y: 0 });
+  };
+
+  // Keyboard Navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (activeModalShort) return;
+      if (e.key === "ArrowLeft") scrollPrev();
+      if (e.key === "ArrowRight") scrollNext();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [scrollPrev, scrollNext, activeModalShort]);
+
+  // Register media usage
+  useEffect(() => {
+    portfolioShorts.forEach((short) => {
+      trackMediaUsage(short.id, "PortfolioClips");
+    });
+  }, []);
+
+  // Modal Handlers
   const openModal = (short: PortfolioShort, btnElement: HTMLButtonElement | null) => {
     triggerButtonRef.current = btnElement;
     setActiveModalShort(short);
@@ -64,68 +180,151 @@ export function PortfolioClipsSection() {
     }
   }, []);
 
-  // Register media usage
-  useEffect(() => {
-    portfolioShorts.forEach((short) => {
-      trackMediaUsage(short.id, "PortfolioClips");
-    });
-  }, []);
-
-  const onSelect = useCallback(() => {
-    if (!emblaApi) return;
-    setSelectedIndex(emblaApi.selectedScrollSnap());
-  }, [emblaApi]);
-
-  useEffect(() => {
-    if (!emblaApi) return;
-    emblaApi.on("select", onSelect);
-    emblaApi.on("reInit", onSelect);
-    return () => {
-      emblaApi.off("select", onSelect);
-      emblaApi.off("reInit", onSelect);
-    };
-  }, [emblaApi, onSelect]);
-
-  const scrollPrev = useCallback(() => {
-    if (emblaApi) emblaApi.scrollPrev();
-  }, [emblaApi]);
-
-  const scrollNext = useCallback(() => {
-    if (emblaApi) emblaApi.scrollNext();
-  }, [emblaApi]);
-
-  // Keyboard navigation
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (activeModalShort) return;
-      if (e.key === "ArrowLeft") {
-        scrollPrev();
-      } else if (e.key === "ArrowRight") {
-        scrollNext();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [scrollPrev, scrollNext, activeModalShort]);
-
-  // Modal escape key listener
   useEffect(() => {
     const handleModalKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && activeModalShort) {
-        closeModal();
-      }
+      if (e.key === "Escape" && activeModalShort) closeModal();
     };
-    if (activeModalShort) {
-      window.addEventListener("keydown", handleModalKeyDown);
-    }
+    if (activeModalShort) window.addEventListener("keydown", handleModalKeyDown);
     return () => window.removeEventListener("keydown", handleModalKeyDown);
   }, [activeModalShort, closeModal]);
 
   const activeShort = filteredShorts[selectedIndex] || filteredShorts[0] || portfolioShorts[0];
   const activeMetrics = METRICS_MAP[activeShort.id] || { views: "200K+", retention: "95%", hookScore: "9.7/10" };
 
+  /**
+   * Calculates the exact visual state (transform, scale, rotate, opacity, zIndex)
+   * for each card based on whether the section is in opening stack mode or active carousel mode (§12).
+   */
+  const getCardVisualState = (index: number): {
+    transform: string;
+    opacity: number;
+    zIndex: number;
+    pointerEvents: React.CSSProperties["pointerEvents"];
+  } => {
+    const relativeIndex = index - selectedIndex;
+    const absRel = Math.abs(relativeIndex);
+
+    // Initial Stacked Composition (before fanning out) (§2)
+    if (!isFannedOut || isFiltering) {
+      const stackConfigs: Record<number, { x: number; y: number; rotate: number; scale: number; zIndex: number }> = {
+        0: { x: 0, y: 10, rotate: 0, scale: 1, zIndex: 10 },
+        1: { x: 100, y: -20, rotate: 4, scale: 0.93, zIndex: 7 },
+        "-1": { x: -90, y: -35, rotate: -6, scale: 0.92, zIndex: 8 },
+        2: { x: 210, y: 45, rotate: -4, scale: 0.86, zIndex: 4 },
+        "-2": { x: -200, y: 35, rotate: 7, scale: 0.85, zIndex: 5 },
+      };
+
+      const cfg = stackConfigs[relativeIndex] || {
+        x: relativeIndex * 110,
+        y: 50,
+        rotate: relativeIndex % 2 === 0 ? 5 : -5,
+        scale: 0.8,
+        zIndex: Math.max(1, 10 - absRel),
+      };
+
+      return {
+        transform: `translate3d(${cfg.x}px, ${cfg.y}px, 0px) rotate(${cfg.rotate}deg) scale(${cfg.scale})`,
+        opacity: absRel > 2 ? 0 : 1 - absRel * 0.15,
+        zIndex: cfg.zIndex,
+        pointerEvents: relativeIndex === 0 ? "auto" : "none",
+      };
+    }
+
+    // Settled Active Carousel Stage Composition (§4, §10)
+    if (isMobile) {
+      // Mobile 3-card deck peek
+      if (relativeIndex === 0) {
+        return {
+          transform: `translate3d(0px, 0px, 0px) scale(1) rotate(0deg)`,
+          opacity: 1,
+          zIndex: 10,
+          pointerEvents: "auto" as const,
+        };
+      }
+      if (relativeIndex === 1) {
+        return {
+          transform: `translate3d(78%, 10px, 0px) scale(0.92) rotate(2deg)`,
+          opacity: 0.75,
+          zIndex: 5,
+          pointerEvents: "auto" as const,
+        };
+      }
+      if (relativeIndex === -1) {
+        return {
+          transform: `translate3d(-78%, 10px, 0px) scale(0.92) rotate(-2deg)`,
+          opacity: 0.75,
+          zIndex: 5,
+          pointerEvents: "auto" as const,
+        };
+      }
+      return {
+        transform: `translate3d(${relativeIndex * 85}%, 20px, 0px) scale(0.85) rotate(0deg)`,
+        opacity: 0,
+        zIndex: 1,
+        pointerEvents: "none" as const,
+      };
+    }
+
+    // Desktop 5-card horizontal composition
+    if (relativeIndex === 0) {
+      return {
+        transform: `translate3d(${parallaxOffset.x * 1.5}px, ${parallaxOffset.y * 1.5}px, 0px) scale(1) rotate(0deg)`,
+        opacity: 1,
+        zIndex: 10,
+        pointerEvents: "auto" as const,
+      };
+    }
+
+    if (relativeIndex === 1) {
+      return {
+        transform: `translate3d(calc(105% + ${parallaxOffset.x * 0.8}px), ${6 + parallaxOffset.y * 0.8}px, 0px) scale(0.94) rotate(1.8deg)`,
+        opacity: 0.78,
+        zIndex: 6,
+        pointerEvents: "auto" as const,
+      };
+    }
+
+    if (relativeIndex === -1) {
+      return {
+        transform: `translate3d(calc(-105% + ${parallaxOffset.x * 0.8}px), ${6 + parallaxOffset.y * 0.8}px, 0px) scale(0.94) rotate(-1.8deg)`,
+        opacity: 0.78,
+        zIndex: 6,
+        pointerEvents: "auto" as const,
+      };
+    }
+
+    if (relativeIndex === 2) {
+      return {
+        transform: `translate3d(calc(205% + ${parallaxOffset.x * 0.4}px), ${14 + parallaxOffset.y * 0.4}px, 0px) scale(0.88) rotate(3.2deg)`,
+        opacity: 0.52,
+        zIndex: 3,
+        pointerEvents: "auto" as const,
+      };
+    }
+
+    if (relativeIndex === -2) {
+      return {
+        transform: `translate3d(calc(-205% + ${parallaxOffset.x * 0.4}px), ${14 + parallaxOffset.y * 0.4}px, 0px) scale(0.88) rotate(-3.2deg)`,
+        opacity: 0.52,
+        zIndex: 3,
+        pointerEvents: "auto" as const,
+      };
+    }
+
+    return {
+      transform: `translate3d(${relativeIndex * 130}%, 30px, 0px) scale(0.8) rotate(0deg)`,
+      opacity: 0,
+      zIndex: 1,
+      pointerEvents: "none" as const,
+    };
+  };
+
   return (
-    <section id="portfolio-clips" className="relative py-20 bg-white overflow-hidden border-b border-border">
+    <section
+      id="portfolio-clips"
+      ref={sectionRef}
+      className="relative py-20 bg-white overflow-clip border-b border-border select-none"
+    >
       {/* Subtle radial atmosphere & background grid */}
       <div className="absolute inset-0 pointer-events-none z-0">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(47,120,255,0.06)_0%,transparent_75%)]" />
@@ -148,7 +347,7 @@ export function PortfolioClipsSection() {
             </p>
           </div>
 
-          {/* Carousel Arrows Controls */}
+          {/* Carousel Controls */}
           <div className="flex items-center gap-3 shrink-0">
             <button
               onClick={scrollPrev}
@@ -168,7 +367,7 @@ export function PortfolioClipsSection() {
         </div>
 
         {/* Category Filter Pills Bar */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-6 scrollbar-none border-b border-border/60">
+        <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-8 scrollbar-none border-b border-border/60">
           {CATEGORIES.map((cat) => {
             const count = cat === "ALL"
               ? portfolioShorts.length
@@ -178,8 +377,8 @@ export function PortfolioClipsSection() {
             return (
               <button
                 key={cat}
-                onClick={() => setActiveCategory(cat)}
-                className={`px-4 py-2 rounded-full text-xs font-heading font-bold uppercase tracking-wider transition-all duration-200 flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+                onClick={() => handleCategoryChange(cat)}
+                className={`px-4 py-2 rounded-full text-xs font-heading font-bold uppercase tracking-wider transition-all duration-300 flex items-center gap-2 whitespace-nowrap cursor-pointer ${
                   isSelected
                     ? "bg-blue text-white shadow-soft"
                     : "bg-surface-soft text-muted hover:bg-blue/10 hover:text-blue border border-border/80"
@@ -198,124 +397,138 @@ export function PortfolioClipsSection() {
           })}
         </div>
 
-        {/* Carousel Stage Container */}
-        <div className="relative w-full">
-          {/* Faded slide counter index background */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-heading font-black text-[130px] sm:text-[200px] text-ink/[0.03] select-none pointer-events-none leading-none z-0">
+        {/* Card Stage Container */}
+        <div
+          className="relative w-full h-[460px] sm:h-[540px] flex items-center justify-center overflow-visible"
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
+          {/* Faded background index counter */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-heading font-black text-[140px] sm:text-[220px] text-ink/[0.03] select-none pointer-events-none leading-none z-0">
             {String(selectedIndex + 1).padStart(2, "0")}
           </div>
 
-          <div className="overflow-hidden cursor-grab active:cursor-grabbing py-6 z-10 relative" ref={emblaRef}>
-            <div className="flex -ml-4 items-center">
-              {filteredShorts.map((short, index) => {
-                const isActive = index === selectedIndex;
-                const src = failedThumbnails[short.id]
-                  ? getYouTubeFallbackThumbnail(short.id)
-                  : getYouTubeThumbnail(short.id);
-                const metrics = METRICS_MAP[short.id] || { views: "200K+", retention: "95%", hookScore: "9.7/10" };
+          {/* Render Cards in Choreographed Position Tracks */}
+          <div className="relative w-[280px] sm:w-[320px] h-[440px] sm:h-[510px]">
+            {filteredShorts.map((short, index) => {
+              const isActive = index === selectedIndex;
+              const styleState = getCardVisualState(index);
+              const src = failedThumbnails[short.id]
+                ? getYouTubeFallbackThumbnail(short.id)
+                : getYouTubeThumbnail(short.id);
+              const metrics = METRICS_MAP[short.id] || { views: "200K+", retention: "95%", hookScore: "9.7/10" };
 
-                return (
+              return (
+                <div
+                  key={short.id}
+                  onClick={() => {
+                    if (!isActive) setSelectedIndex(index);
+                  }}
+                  className="absolute inset-0 cursor-pointer will-change-transform"
+                  style={{
+                    transform: styleState.transform,
+                    opacity: styleState.opacity,
+                    zIndex: styleState.zIndex,
+                    pointerEvents: styleState.pointerEvents,
+                    transition: prefersReducedMotion
+                      ? "opacity 200ms ease"
+                      : "transform 750ms cubic-bezier(0.22, 1, 0.36, 1), opacity 750ms cubic-bezier(0.22, 1, 0.36, 1)",
+                  }}
+                >
                   <div
-                    key={short.id}
-                    className="pl-4 flex-[0_0_82%] sm:flex-[0_0_50%] md:flex-[0_0_360px] min-w-0 transition-all duration-500 ease-out"
-                    style={{
-                      transform: isActive ? "scale(1.02)" : "scale(0.88)",
-                      opacity: isActive ? 1 : 0.55,
-                    }}
+                    className={`relative w-full h-full rounded-2xl overflow-hidden border transition-all duration-300 shadow-xl group ${
+                      isActive
+                        ? "border-blue shadow-[0_20px_50px_rgba(47,120,255,0.28)] ring-4 ring-blue/20 hover:scale-[1.015] hover:-translate-y-1"
+                        : "border-border/80 hover:border-blue/40 hover:opacity-90"
+                    }`}
                   >
-                    <div
-                      className={`relative aspect-[9/16] rounded-2xl overflow-hidden border transition-all duration-500 shadow-md ${
-                        isActive
-                          ? "border-blue shadow-[0_20px_50px_rgba(47,120,255,0.25)] ring-4 ring-blue/20"
-                          : "border-border/80 hover:border-blue/30"
-                      }`}
-                    >
-                      <Image
-                        src={src}
-                        alt={short.title}
-                        fill
-                        priority={index === 0}
-                        onError={() =>
-                          setFailedThumbnails((prev) => ({ ...prev, [short.id]: true }))
-                        }
-                        className="object-cover transition-transform duration-700 hover:scale-105"
-                        sizes="(max-width: 640px) 82vw, (max-width: 1024px) 50vw, 360px"
-                      />
+                    <Image
+                      src={src}
+                      alt={short.title}
+                      fill
+                      priority={index === 0}
+                      onError={() =>
+                        setFailedThumbnails((prev) => ({ ...prev, [short.id]: true }))
+                      }
+                      className="object-cover transition-transform duration-700 group-hover:scale-105"
+                      sizes="(max-width: 640px) 280px, 320px"
+                    />
 
-                      {/* Card Overlay Gradient */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-slate-950/60" />
+                    {/* Card Overlay Gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-slate-950/60" />
 
-                      {/* Top Badges & Soundwave Indicator */}
-                      <div className="absolute top-3.5 inset-x-3.5 z-10 flex items-center justify-between">
-                        <Badge className="bg-black/70 backdrop-blur-md text-white border-white/20 text-[9px] uppercase tracking-wider font-bold">
-                          {short.category} • REEL
-                        </Badge>
+                    {/* Top Badges & Soundwave Indicator */}
+                    <div className="absolute top-3.5 inset-x-3.5 z-10 flex items-center justify-between">
+                      <Badge className="bg-black/70 backdrop-blur-md text-white border-white/20 text-[9px] uppercase tracking-wider font-bold">
+                        {short.category} • REEL
+                      </Badge>
 
+                      {isActive && (
+                        <div className="flex items-center gap-1.5 bg-blue/90 backdrop-blur-md text-white px-2.5 py-1 rounded-full text-[8px] font-mono font-bold uppercase tracking-wider border border-white/20 shadow-xs">
+                          <span className="flex gap-0.5 items-end h-2.5">
+                            <span className="w-0.5 bg-white h-2 animate-bounce" />
+                            <span className="w-0.5 bg-white h-2.5 animate-bounce [animation-delay:0.15s]" />
+                            <span className="w-0.5 bg-white h-1.5 animate-bounce [animation-delay:0.3s]" />
+                          </span>
+                          <span>ACTIVE STAGE</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Performance Metric Floating Badge */}
+                    <div className="absolute top-12 left-3.5 z-10">
+                      <span className="inline-flex items-center gap-1.5 bg-slate-950/80 backdrop-blur-md text-white/90 px-2.5 py-1 rounded-md text-[9px] font-mono border border-white/10">
+                        <Flame className="size-3 text-amber-400 fill-amber-400" />
+                        <span>{metrics.views} Views</span>
+                        <span className="text-white/40">·</span>
+                        <span className="text-emerald-400 font-bold">{metrics.retention}</span>
+                      </span>
+                    </div>
+
+                    {/* Glowing Play Button Trigger */}
+                    <div className="absolute inset-0 flex items-center justify-center z-10">
+                      <div className="relative">
                         {isActive && (
-                          <div className="flex items-center gap-1.5 bg-blue/90 backdrop-blur-md text-white px-2 py-1 rounded-full text-[8px] font-mono font-bold uppercase tracking-wider border border-white/20 shadow-xs">
-                            <span className="flex gap-0.5 items-end h-2.5">
-                              <span className="w-0.5 bg-white h-2 animate-bounce" />
-                              <span className="w-0.5 bg-white h-2.5 animate-bounce [animation-delay:0.15s]" />
-                              <span className="w-0.5 bg-white h-1.5 animate-bounce [animation-delay:0.3s]" />
-                            </span>
-                            <span>ACTIVE STAGE</span>
-                          </div>
+                          <span className="absolute inset-0 rounded-full bg-blue animate-ping opacity-40" />
                         )}
-                      </div>
-
-                      {/* Performance Metric Floating Badge */}
-                      <div className="absolute top-12 left-3.5 z-10">
-                        <span className="inline-flex items-center gap-1.5 bg-slate-950/80 backdrop-blur-md text-white/90 px-2.5 py-1 rounded-md text-[9px] font-mono border border-white/10">
-                          <Flame className="size-3 text-amber-400 fill-amber-400" />
-                          <span>{metrics.views} Views</span>
-                          <span className="text-white/40">·</span>
-                          <span className="text-emerald-400 font-bold">{metrics.retention}</span>
-                        </span>
-                      </div>
-
-                      {/* Glowing Play Button Trigger */}
-                      <div className="absolute inset-0 flex items-center justify-center z-10">
-                        <div className="relative">
-                          {isActive && (
-                            <span className="absolute inset-0 rounded-full bg-blue animate-ping opacity-40" />
-                          )}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openModal(short, e.currentTarget);
-                            }}
-                            className={`relative size-16 rounded-full flex items-center justify-center transition-all duration-300 shadow-2xl cursor-pointer ${
-                              isActive
-                                ? "bg-blue text-white scale-100 hover:scale-110 hover:bg-blue-light"
-                                : "bg-white/85 backdrop-blur-md text-ink scale-90 opacity-80 hover:opacity-100"
-                            }`}
-                            aria-label={`Play ${short.title}`}
-                          >
-                            <Play className="size-7 fill-current translate-x-0.5" />
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Bottom Info inside thumbnail */}
-                      <div className="absolute bottom-4 left-4 right-4 z-10 text-white space-y-1.5">
-                        <div className="flex items-center gap-2 text-[9px] font-mono text-white/70">
-                          <Zap className="size-3 text-blue-light" />
-                          <span>HOOK SCORE: {metrics.hookScore}</span>
-                        </div>
-                        <p className="font-heading text-sm font-bold line-clamp-2 leading-snug text-white">
-                          {short.title}
-                        </p>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openModal(short, e.currentTarget);
+                          }}
+                          className={`relative size-16 rounded-full flex items-center justify-center transition-all duration-300 shadow-2xl cursor-pointer ${
+                            isActive
+                              ? "bg-blue text-white scale-100 group-hover:scale-110 hover:bg-blue-light"
+                              : "bg-white/85 backdrop-blur-md text-ink scale-90 opacity-80 hover:opacity-100"
+                          }`}
+                          aria-label={`Play ${short.title}`}
+                        >
+                          <Play className="size-7 fill-current translate-x-0.5" />
+                        </button>
                       </div>
                     </div>
+
+                    {/* Bottom Info inside thumbnail */}
+                    <div className="absolute bottom-4 left-4 right-4 z-10 text-white space-y-1.5">
+                      <div className="flex items-center gap-2 text-[9px] font-mono text-white/70">
+                        <Zap className="size-3 text-blue-light" />
+                        <span>HOOK SCORE: {metrics.hookScore}</span>
+                      </div>
+                      <p className="font-heading text-sm font-bold line-clamp-2 leading-snug text-white">
+                        {short.title}
+                      </p>
+                    </div>
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
         {/* Studio Video Workspace Details Box */}
-        <div className="mt-6 bg-slate-950 border border-border/80 rounded-2xl p-6 sm:p-8 text-white relative overflow-hidden shadow-xl text-left">
+        <div className="mt-8 bg-slate-950 border border-border/80 rounded-2xl p-6 sm:p-8 text-white relative overflow-hidden shadow-xl text-left">
           {/* Subtle ambient light */}
           <div className="absolute -right-20 -bottom-20 size-80 rounded-full bg-blue/15 blur-3xl pointer-events-none" />
 
