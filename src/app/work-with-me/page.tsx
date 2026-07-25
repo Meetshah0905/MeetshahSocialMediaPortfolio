@@ -12,62 +12,10 @@ import { socialUrls } from "@/content/site";
 import { imageManifest } from "@/content/imageManifest";
 import { WhiteAtmosphereSection } from "@/components/ui/WhiteAtmosphereSection";
 
+import { ServicesSection } from "@/components/home/ServicesSection";
+import { useCinematicHeroMotion } from "@/lib/hooks/useCinematicHeroMotion";
 import HeroParticles from "@/components/ui/HeroParticles";
 import { HeroMaroonAtmosphere } from "@/components/home/HeroMaroonAtmosphere";
-import { useCinematicHeroMotion } from "@/lib/hooks/useCinematicHeroMotion";
-
-const SERVICES_LIST = [
-  {
-    num: "01",
-    title: "Dedicated Instagram Reels",
-    desc: "Short-form video content published directly to Meet's channels (@meetsofficial or @meet.fitfix) to highlight your brand context organically.",
-  },
-  {
-    num: "02",
-    title: "UGC Video Production",
-    desc: "Custom-formatted vertical video assets delivered directly to brand channels, structured with hook variations.",
-  },
-  {
-    num: "03",
-    title: "Story Integrations",
-    desc: "Multi-frame story sequences showing product use cases, sharing feedback, and interactive link stickers.",
-  },
-  {
-    num: "04",
-    title: "Product Demonstrations",
-    desc: "Hands-on walk-throughs showcasing product features, textures, and physical use cases.",
-  },
-  {
-    num: "05",
-    title: "Educational Explainers",
-    desc: "Clear and compliant explanations of wellness practices or financial dashboard utilities.",
-  },
-  {
-    num: "06",
-    title: "Script and Hook Development",
-    desc: "Creator-led drafts, alternate visual sequences, and call-to-action scripts based on campaign briefs.",
-  },
-  {
-    num: "07",
-    title: "Creative Strategy",
-    desc: "Audience alignment research, hook ideation, and video campaign narrative mapping.",
-  },
-  {
-    num: "08",
-    title: "Paid Usage Rights",
-    desc: "Licensing options to run marketing campaigns utilizing the created assets.",
-  },
-  {
-    num: "09",
-    title: "Whitelisting",
-    desc: "Advertiser publishing permissions to distribute reels directly under the creator's social handle.",
-  },
-  {
-    num: "10",
-    title: "Long-term Campaigns",
-    desc: "Multi-month brand integrations across channels to sustain organic visibility.",
-  },
-];
 
 const SCOPING_FACTORS = [
   {
@@ -98,8 +46,6 @@ const SCOPING_FACTORS = [
 ];
 
 export default function WorkWithMePage() {
-  const [activeServiceIdx, setActiveServiceIdx] = useState(0);
-
   const scopeRef = useRef<HTMLElement>(null);
   const heroMaskRef = useRef<HTMLDivElement>(null);
   const heroImageRef = useRef<HTMLImageElement>(null);
@@ -187,107 +133,8 @@ export default function WorkWithMePage() {
       {/* Transition to white section */}
       <div className="relative h-10 bg-white rounded-t-[32px] z-30 border-t border-border" />
 
-      {/* 2. SERVICES SECTION (Desktop index hover / Mobile snapping carousel) */}
-      <WhiteAtmosphereSection id="services" halo="right" className="bg-white">
-        <Container>
-          <div className="text-left mb-12">
-            <span className="text-blue font-bold text-xs uppercase tracking-widest block mb-2">
-              Capabilities
-            </span>
-            <h2 className="font-heading text-3xl font-bold text-ink">
-              Services & Formats
-            </h2>
-            <p className="mt-2 text-xs text-body">
-              Flexible formats engineered for high retention and viewer engagement.
-            </p>
-          </div>
-
-          {/* Desktop Two-Column Hover Index */}
-          <div className="hidden md:grid grid-cols-12 gap-12 items-center">
-            {/* Left list index */}
-            <div className="col-span-6 space-y-2.5">
-              {SERVICES_LIST.map((srv, idx) => {
-                const isActive = activeServiceIdx === idx;
-                return (
-                  <div
-                    key={srv.title}
-                    onMouseEnter={() => setActiveServiceIdx(idx)}
-                    className={`p-4 rounded-lg border transition-all duration-300 cursor-pointer ${
-                      isActive
-                        ? "bg-blue/5 border-blue/30 translate-x-1 shadow-xs"
-                        : "bg-transparent border-border hover:border-blue/20"
-                    }`}
-                  >
-                    <div className="flex gap-4 items-center">
-                      <span
-                        className={`font-display text-sm font-bold transition-colors ${
-                          isActive ? "text-blue" : "text-muted"
-                        }`}
-                      >
-                        {srv.num}
-                      </span>
-                      <h3 className={`font-heading text-xs font-bold ${isActive ? "text-ink" : "text-body"}`}>
-                        {srv.title}
-                      </h3>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Right Visual services poster */}
-            <div className="col-span-6 flex flex-col items-center">
-              <div className="relative w-full aspect-video rounded-panel overflow-hidden border border-border bg-white shadow-soft">
-                <Image
-                  src={imageManifest.servicesPoster.src}
-                  alt={imageManifest.servicesPoster.alt}
-                  fill
-                  sizes="50vw"
-                  className="object-cover"
-                />
-              </div>
-              {/* Description block placed beneath the Services poster */}
-              <div className="mt-6 w-full p-6 bg-surface-soft border border-border rounded-lg text-left">
-                <span className="text-[9px] font-heading font-bold text-blue uppercase tracking-widest block mb-1">
-                  Capability Detail
-                </span>
-                <span className="font-heading text-sm font-bold text-ink block">
-                  {SERVICES_LIST[activeServiceIdx].title}
-                </span>
-                <p className="mt-2 text-xs text-body leading-relaxed">
-                  {SERVICES_LIST[activeServiceIdx].desc}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Mobile Centred scaling carousel */}
-          <div className="md:hidden w-full overflow-x-auto flex gap-4 snap-x snap-mandatory py-4 scrollbar-none px-12 -mx-5">
-            {SERVICES_LIST.map((srv, idx) => {
-              const isActive = activeServiceIdx === idx;
-              return (
-                <div
-                  key={srv.title}
-                  className="snap-center shrink-0 w-[240px] p-6 rounded-lg border border-border bg-white transition-all duration-300 scroll-snap-align"
-                  style={{
-                    transform: isActive ? "scale(1.0)" : "scale(0.88)",
-                    opacity: isActive ? 1.0 : 0.55,
-                  }}
-                  onTouchStart={() => setActiveServiceIdx(idx)}
-                >
-                  <span className="text-xs font-bold text-blue block mb-2">{srv.num}</span>
-                  <h4 className="font-heading text-sm font-bold text-ink">
-                    {srv.title}
-                  </h4>
-                  <p className="mt-2 text-[11px] text-body leading-relaxed">
-                    {srv.desc}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        </Container>
-      </WhiteAtmosphereSection>
+      {/* 2. SERVICES SECTION (Capabilities & Formats) */}
+      <ServicesSection />
 
       {/* 3. CAMPAIGN SCOPING SECTION (Replaces public packages) */}
       <WhiteAtmosphereSection halo="left" className="bg-white border-y border-border">
