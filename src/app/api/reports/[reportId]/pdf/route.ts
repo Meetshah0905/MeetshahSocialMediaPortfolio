@@ -96,9 +96,24 @@ export async function GET(
     }
 
     const cleanKey = report.pdfStorageKey.replace(/^\/+/, "");
-    const localPath = path.join(process.cwd(), "uploads", "reports", cleanKey);
-    const altLocalPath = path.join(process.cwd(), "public", "uploads", cleanKey);
-    const finalPath = fs.existsSync(localPath) ? localPath : fs.existsSync(altLocalPath) ? altLocalPath : null;
+    const normalizedSubPath = cleanKey.startsWith("reports/")
+      ? cleanKey.slice("reports/".length)
+      : cleanKey;
+
+    const possiblePaths = [
+      path.join(process.cwd(), "public", "uploads", cleanKey),
+      path.join(process.cwd(), "public", "uploads", "reports", normalizedSubPath),
+      path.join(process.cwd(), "uploads", cleanKey),
+      path.join(process.cwd(), "uploads", "reports", normalizedSubPath),
+    ];
+
+    let finalPath: string | null = null;
+    for (const p of possiblePaths) {
+      if (fs.existsSync(p) && fs.statSync(p).isFile()) {
+        finalPath = p;
+        break;
+      }
+    }
 
     if (finalPath) {
       const data = fs.readFileSync(finalPath);
@@ -112,20 +127,37 @@ export async function GET(
     }
   }
 
-  if (report.pdfUrl.startsWith("/uploads/")) {
-    return NextResponse.json({ error: "PDF missing from storage" }, { status: 410 });
+  if (report.pdfUrl && report.pdfUrl.startsWith("/uploads/")) {
+    const localPathFromUrl = path.join(process.cwd(), "public", report.pdfUrl);
+    if (fs.existsSync(localPathFromUrl) && fs.statSync(localPathFromUrl).isFile()) {
+      const data = fs.readFileSync(localPathFromUrl);
+      return new NextResponse(data, {
+        headers: {
+          "Content-Type": "application/pdf",
+          "Content-Disposition": `${disposition}; filename="${filename}"`,
+          "Cache-Control": "public, max-age=300",
+        },
+      });
+    }
   }
 
   // Storage HTTP fallback redirect
-  try {
-    const url = new URL(report.pdfUrl);
-    const response = NextResponse.redirect(url, 302);
-    response.headers.set(
-      "Content-Disposition",
-      `${disposition}; filename="${filename}"`,
-    );
-    return response;
-  } catch {
-    return NextResponse.json({ error: "Invalid PDF storage URL" }, { status: 500 });
+  if (report.pdfUrl && !report.pdfUrl.includes(`/api/reports/`)) {
+    try {
+      const url = report.pdfUrl.startsWith("http://") || report.pdfUrl.startsWith("https://")
+        ? new URL(report.pdfUrl)
+        : new URL(report.pdfUrl, request.nextUrl.origin);
+
+      const response = NextResponse.redirect(url, 302);
+      response.headers.set(
+        "Content-Disposition",
+        `${disposition}; filename="${filename}"`,
+      );
+      return response;
+    } catch {
+      // Fall through to 404
+    }
   }
+
+  return NextResponse.json({ error: "PDF report file not found on storage" }, { status: 404 });
 }

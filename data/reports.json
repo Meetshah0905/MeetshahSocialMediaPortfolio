@@ -65,8 +65,8 @@
       "longFormViews": 120000,
       "watchTimeMinutes": 25000
     },
-    "pdfUrl": "/api/reports/report-yt-test90/pdf",
-    "pdfStorageKey": "youtube-main/2026/90-days/meet-shah-youtube-90-days-test.pdf",
+    "pdfUrl": "/uploads/reports/youtube-main/2026-07-24/meet-shah-youtube-90-days-test.pdf",
+    "pdfStorageKey": "reports/youtube-main/2026-07-24/meet-shah-youtube-90-days-test.pdf",
     "originalPdfFilename": "meet-shah-youtube-90-days-test.pdf",
     "pdfSizeBytes": 1542000,
     "status": "published",

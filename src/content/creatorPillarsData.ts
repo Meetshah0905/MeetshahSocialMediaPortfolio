@@ -57,7 +57,7 @@ export const creatorPillarsData: CreatorPillar[] = [
     title: "Short-form attention. Long-form depth.",
     description:
       "YouTube Shorts and long-form videos explaining fitness, finance, and creator topics.",
-    image: "/images/meet/Meet_Shah_fitness_portrait_2K_202607190204.jpeg",
+    image: "/images/meet/meet-studio-poster.jpg",
     imageAlt: "Meet Shah YouTube content creator",
     metricKey: "youtube_main",
     metricLabel: "Subscribers",
