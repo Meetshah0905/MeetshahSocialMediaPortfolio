@@ -5,6 +5,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ArrowPillButton } from "@/components/ui/ArrowPillButton";
+import { ShineButton } from "@/components/ui/ShineButton";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Container } from "@/components/ui/Container";
@@ -173,13 +174,14 @@ export default function HomeClientPage({ profiles }: { profiles: HomeProfile[] }
                   <ArrowPillButton href="/work-with-me" size="sm" className="flex-1 sm:flex-initial text-center justify-center">
                     Work With Me
                   </ArrowPillButton>
-                  <Button
+                  <ShineButton
                     href="/analytics"
-                    className="bg-white/10 hover:bg-white/20 border-white/20 text-white flex-1 sm:flex-initial text-center justify-center"
+                    variant="secondary"
                     size="sm"
+                    className="flex-1 sm:flex-initial text-center justify-center"
                   >
                     View Media Kit
-                  </Button>
+                  </ShineButton>
                 </div>
               </div>
             </div>

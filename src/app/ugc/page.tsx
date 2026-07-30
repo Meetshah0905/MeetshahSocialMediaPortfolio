@@ -4,6 +4,7 @@ import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Card } from "@/components/ui/Card";
 import { ArrowPillButton } from "@/components/ui/ArrowPillButton";
+import { ShineButton } from "@/components/ui/ShineButton";
 import { Mail } from "lucide-react";
 import { socialUrls } from "@/content/site";
 import { UGCHero } from "@/components/ugc/UGCHero";
@@ -85,13 +86,14 @@ export default function UGCPage() {
             <ArrowPillButton href="/contact?vertical=ugc" size="md">
               Start UGC Campaign Proposal
             </ArrowPillButton>
-            <a
+            <ShineButton
               href={`mailto:${socialUrls.email}`}
-              className="inline-flex min-h-12 items-center gap-2 border border-white/20 px-5 rounded-full text-xs font-semibold hover:bg-white/5 transition-colors"
+              variant="secondary"
+              size="md"
             >
               <Mail className="size-4" />
               {socialUrls.email}
-            </a>
+            </ShineButton>
           </div>
         </Container>
       </section>

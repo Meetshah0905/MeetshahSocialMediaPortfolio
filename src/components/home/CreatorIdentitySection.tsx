@@ -37,7 +37,7 @@ export function CreatorIdentitySection() {
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: sectionRef.current,
-        start: "top 75%",
+        start: "top 85%",
         toggleActions: "play none none reverse",
       },
       onComplete: () => {
@@ -138,8 +138,8 @@ export function CreatorIdentitySection() {
                   alt="Black-and-white studio portrait of Meet Shah smiling with his arms crossed"
                   width={921}
                   height={921}
-                  quality={100}
-                  priority={false}
+                  quality={90}
+                  priority
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 48vw, 540px"
                   style={{ objectPosition: "center 28%" }}
                   className="block h-full w-full object-cover"

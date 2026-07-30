@@ -9,6 +9,8 @@ import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { SpecularButton } from "@/components/ui/SpecularButton";
+import { ShineButton } from "@/components/ui/ShineButton";
 import { YouTubeThumbnail } from "@/components/youtube/YouTubeThumbnail";
 import {
   Video,
@@ -123,22 +125,22 @@ export function YouTubeClientPage({ metrics, reports, videos }: YouTubeClientPag
 
                 {/* Primary & Secondary CTAs */}
                 <div className="pt-4 flex flex-wrap gap-4 items-center">
-                  <a
+                  <SpecularButton
+                    variant="youtube"
+                    size="lg"
                     href={YOUTUBE_CHANNEL.channelUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-red-600 px-6 py-3 text-base font-bold text-white shadow-lg shadow-red-600/30 hover:bg-red-700 active:scale-95 transition-all"
                   >
                     <span>Visit YouTube Channel</span>
-                    <ArrowUpRight className="size-5" />
-                  </a>
+                    <ArrowUpRight className="size-5 ml-1" />
+                  </SpecularButton>
 
-                  <a
+                  <ShineButton
+                    variant="secondary"
+                    size="lg"
                     href="#videos"
-                    className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 px-6 py-3 text-base font-bold text-white transition-all"
                   >
                     <span>View Latest Videos</span>
-                  </a>
+                  </ShineButton>
                 </div>
 
                 {/* Additional Compact Links */}

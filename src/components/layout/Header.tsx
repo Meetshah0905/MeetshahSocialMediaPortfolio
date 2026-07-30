@@ -8,6 +8,7 @@ import { ArrowUpRight } from "lucide-react";
 import { desktopNavigation } from "@/content/navigation";
 import { site } from "@/content/site";
 import { Container } from "@/components/ui/Container";
+import { SpecularButton } from "@/components/ui/SpecularButton";
 import { MobileMenu } from "./MobileMenu";
 import { cn } from "@/lib/utils/cn";
 
@@ -84,7 +85,7 @@ export function Header() {
                       <m.span
                         aria-hidden
                         layoutId="header-active-pill"
-                        className="absolute inset-0 -z-10 rounded-full bg-blue-50/90 border border-blue-200/70 shadow-[0_2px_8px_rgba(37,99,235,0.12)]"
+                        className="absolute inset-0 -z-10 rounded-full bg-blue-50/90 border border-blue-200/80 shadow-xs"
                         transition={{ type: "spring", stiffness: 400, damping: 30 }}
                       />
                     )}
@@ -109,19 +110,15 @@ export function Header() {
           {/* Header Action: Join Creator Team CTA */}
           <div className="flex items-center gap-3">
             <div className="hidden sm:block">
-              <Link
+              <SpecularButton
+                variant="primary"
+                size="sm"
                 href={ctaNavItem?.href || "/join-creator-team"}
-                className={cn(
-                  "group inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-xs xl:text-sm font-semibold text-white",
-                  "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800",
-                  "shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/35",
-                  "transition-all duration-250 ease-out hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]",
-                  isActive(ctaNavItem?.href || "/join-creator-team") && "ring-2 ring-blue-400 ring-offset-2"
-                )}
+                className="group"
               >
                 <span>{ctaNavItem?.label || "Join Creator Team"}</span>
-                <ArrowUpRight className="size-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-              </Link>
+                <ArrowUpRight className="size-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 ml-1" />
+              </SpecularButton>
             </div>
 
             <MobileMenu />

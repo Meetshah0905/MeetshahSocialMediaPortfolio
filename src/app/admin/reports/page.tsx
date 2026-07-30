@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
+import { SpecularButton } from "@/components/ui/SpecularButton";
+import { ShineButton } from "@/components/ui/ShineButton";
 import type { AnalyticsReport, ReportStatus } from "@/lib/storage/reportShared";
 import { CHANNEL_DISPLAY, formatReportWindow, formatPdfFileSize } from "@/lib/storage/reportShared";
 
@@ -82,26 +84,27 @@ export default function AdminReportsPage() {
           </div>
 
           <div className="flex flex-wrap gap-3">
-            <Link
+            <ShineButton
               href="/admin/proposals"
-              className="rounded-lg bg-blue px-4 py-2 text-xs font-bold uppercase tracking-wider text-white hover:bg-blue-deep"
+              variant="secondary"
+              size="sm"
             >
               Inquiries / Proposals
-            </Link>
-            <Link
+            </ShineButton>
+            <SpecularButton
               href="/admin/reports/new"
-              className="rounded-lg border border-border bg-white px-4 py-2 text-xs font-bold uppercase tracking-wider text-ink hover:border-blue/30"
+              variant="primary"
+              size="sm"
             >
               + Upload PDF Report
-            </Link>
-            <a
+            </SpecularButton>
+            <ShineButton
               href="/analytics"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-lg border border-border bg-white px-4 py-2 text-xs font-bold uppercase tracking-wider text-ink hover:border-blue/30"
+              variant="light"
+              size="sm"
             >
               View public analytics ↗
-            </a>
+            </ShineButton>
           </div>
         </div>
 
@@ -208,60 +211,65 @@ function ReportRow({
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <Link
+        <ShineButton
           href={`/admin/reports/${report.id}/edit`}
-          className="rounded-lg border border-border bg-surface-soft px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-ink hover:border-blue/30"
+          variant="light"
+          size="sm"
         >
           Edit
-        </Link>
+        </ShineButton>
+
         {report.status === "published" ? (
-          <button
-            type="button"
-            disabled={busy}
+          <ShineButton
+            variant="light"
+            size="sm"
+            loading={busy}
             onClick={() => onAct(report.id, "unpublish")}
-            className="rounded-lg border border-border bg-surface-soft px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-ink hover:border-blue/30 disabled:opacity-50"
           >
-            {busy ? "…" : "Unpublish"}
-          </button>
+            Unpublish
+          </ShineButton>
         ) : (
-          <button
-            type="button"
-            disabled={busy || !report.pdfStorageKey}
+          <ShineButton
+            variant="primary"
+            size="sm"
+            loading={busy}
+            disabled={!report.pdfStorageKey}
             onClick={() => onAct(report.id, "publish")}
-            className="rounded-lg bg-blue px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-white hover:bg-blue-deep disabled:opacity-50"
             title={!report.pdfStorageKey ? "Upload the PDF before publishing" : ""}
           >
-            {busy ? "…" : "Publish"}
-          </button>
+            Publish
+          </ShineButton>
         )}
+
         {report.status !== "archived" && (
-          <button
-            type="button"
-            disabled={busy}
+          <ShineButton
+            variant="light"
+            size="sm"
+            loading={busy}
             onClick={() => onAct(report.id, "archive")}
-            className="rounded-lg border border-border bg-surface-soft px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-ink hover:border-blue/30 disabled:opacity-50"
           >
             Archive
-          </button>
+          </ShineButton>
         )}
+
         {report.status === "published" && (
-          <a
+          <ShineButton
             href={`/api/reports/${report.id}/pdf`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-lg border border-border bg-surface-soft px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-ink hover:border-blue/30"
+            variant="light"
+            size="sm"
           >
             View PDF
-          </a>
+          </ShineButton>
         )}
-        <button
-          type="button"
-          disabled={busy}
+
+        <ShineButton
+          variant="danger"
+          size="sm"
+          loading={busy}
           onClick={() => onAct(report.id, "delete")}
-          className="rounded-lg border border-red-200 bg-white px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-red-700 hover:bg-red-50 disabled:opacity-50"
         >
           Delete
-        </button>
+        </ShineButton>
       </div>
     </div>
   );

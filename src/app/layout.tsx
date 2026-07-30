@@ -10,6 +10,7 @@ import { Suspense } from "react";
 import { RouteScrollManager } from "@/components/navigation/RouteScrollManager";
 import { AIAssistantWidget } from "@/components/ui/AIAssistantWidget";
 import { CalEmbed } from "@/components/ui/CalEmbed";
+import { SharedPointerProvider } from "@/components/ui/SharedPointerContext";
 
 /**
  * Fonts are self-hosted by next/font at build time — no third-party request at
@@ -96,28 +97,22 @@ export default function RootLayout({
           Skip to content
         </a>
 
-        <MotionProvider>
-          <SmoothScrollProvider>
-            <Suspense fallback={null}>
-              <RouteScrollManager />
-            </Suspense>
-            <Header />
-            {/*
-             * `pt-18` (matches the h-18 header) is only needed while the
-             * header is `fixed`, i.e. below the lg breakpoint. Above lg the
-             * header returns to `sticky` and lives in normal flow, so we
-             * cancel the offset to avoid stacking two "header heights" of
-             * whitespace above the hero.
-             */}
-            <main id="main" className="flex-1 w-full pt-18 lg:pt-0">
-              {children}
-            </main>
-            {/* Mounted once globally (§13); hides itself on admin routes. */}
-            <AIAssistantWidget />
-            <CalEmbed />
-            <Footer />
-          </SmoothScrollProvider>
-        </MotionProvider>
+        <SharedPointerProvider>
+          <MotionProvider>
+            <SmoothScrollProvider>
+              <Suspense fallback={null}>
+                <RouteScrollManager />
+              </Suspense>
+              <Header />
+              <main id="main" className="flex-1 w-full pt-18 lg:pt-0">
+                {children}
+              </main>
+              <AIAssistantWidget />
+              <CalEmbed />
+              <Footer />
+            </SmoothScrollProvider>
+          </MotionProvider>
+        </SharedPointerProvider>
       </body>
     </html>
   );
